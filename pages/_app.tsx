@@ -9,6 +9,15 @@ import { persistStore } from 'redux-persist'
 import { store } from '../redux';
 import { Provider } from 'react-redux'
 import { SnackbarProvider } from 'notistack'
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import createEmotionCache from '../src/createEmotionCache';
+
+// Client-side cache, shared for the whole session of the user in the browser.
+const clientSideEmotionCache = createEmotionCache();
+
+interface MyAppProps extends AppProps {
+  emotionCache?: EmotionCache;
+}
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -28,8 +37,9 @@ declare module '@mui/material/Button' {
   }
 }
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App(props: MyAppProps) {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
 
   const theme = useMemo(
     () =>
@@ -49,7 +59,8 @@ export default function App({ Component, pageProps }: AppProps) {
   let persistor = persistStore(store);
 
   return (
-    <SnackbarProvider maxSnack={3}>
+    <CacheProvider value={emotionCache}>
+       <SnackbarProvider maxSnack={3}>
       <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider theme={theme}>
@@ -59,6 +70,8 @@ export default function App({ Component, pageProps }: AppProps) {
       </PersistGate>
     </Provider >
     </SnackbarProvider>
+    </CacheProvider>
+   
     
   )
 
