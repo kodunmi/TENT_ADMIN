@@ -21,7 +21,7 @@ interface CardProps {
 }
 
 const StyledCard = styled(Card)`
-  border-radius: ${props => props.rounded ? "20px": "0px" };
+  border-radius: ${(props:{rounded:boolean}) => props.rounded ? "20px": "0px" };
   height: 100%;
 `;
 
