@@ -17,6 +17,7 @@ import { DashboardLayout } from "../layout";
 import styled from "styled-components";
 import { TentCard } from "../components/card";
 import { Bar } from "react-chartjs-2";
+import {  Chart, ChartType, ChartOptions} from 'chart.js';
 import { WithAuth } from "../HOC";
 import { useGetDashboardDataQuery } from "../services";
 import moment from "moment";
@@ -30,21 +31,34 @@ const clickSearchButton = () => {
 };
 
 
+// const options:ChartOptions = {
+//   scales: {
+//     yAxes: [
+//       {
+//         stacked: true,
+//         ticks: {
+//           beginAtZero: true,
+//         },
+//       },
+//     ],
+//     xAxes: [
+//       {
+//         stacked: true,
+//       },
+//     ],
+//   },
+// };
+
 const options = {
-  scales: {
-    yAxes: [
-      {
-        stacked: true,
-        ticks: {
-          beginAtZero: true,
-        },
-      },
-    ],
-    xAxes: [
-      {
-        stacked: true,
-      },
-    ],
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top' as const,
+    },
+    title: {
+      display: true,
+      text: 'Chart.js Bar Chart',
+    },
   },
 };
 
