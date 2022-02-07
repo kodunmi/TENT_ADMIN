@@ -51,7 +51,7 @@ const Login = () => {
                 <img style={{ position: "absolute", zIndex: 2, right: "10%", top: "5%" }} src="/images/Vector1.png" height="16%" alt="" />
                 <Box px={3} pb={2}>
                     <Typography variant="h5">
-                        <b>Welcome</b>
+                        <b>Welcome to admin</b>
                     </Typography>
                     <Typography component="div" mb={6} variant="caption">
                         Sign to your account
@@ -156,9 +156,7 @@ const Login = () => {
                     >
                         Login
                     </LoadingButton>
-                    <Typography align="center" component="div" mt={3} variant="caption">
-                        I don’t have account, <Link href="/register">Register</Link>
-                    </Typography>
+                   
                 </Box>
             </Box>
         </AuthLayout>
