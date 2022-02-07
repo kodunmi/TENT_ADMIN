@@ -15,6 +15,7 @@ import { DashboardLayout } from "../../layout";
 import Back from "remixicon-react/ArrowLeftLineIcon";
 import { border, Box } from "@mui/system";
 import { TentTextField } from "../../components";
+import { WithAuth } from "../../HOC";
 
 const Header = (
   <Stack alignItems="center" direction="row" spacing={2}>
@@ -271,4 +272,4 @@ const User = () => {
   );
 };
 
-export default User;
+export default WithAuth(User) ;

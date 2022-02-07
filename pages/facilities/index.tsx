@@ -9,6 +9,8 @@ import Delete from "remixicon-react/DeleteBinLineIcon";
 import Edit from "remixicon-react/PencilLineIcon";
 import View from 'remixicon-react/EyeLineIcon'
 import { useGetCardFacilitiesQuery, useGetFacilitiesQuery, useGetFacilitySummaryQuery } from "../../services";
+import { useToken } from "../../hooks";
+import { WithAuth } from "../../HOC";
 
 
 interface Column {
@@ -72,12 +74,23 @@ const clickSearchButton = () => {
   alert("yeeheheh");
 };
 
-export default function FacilityPage() {
+ const  FacilityPage = () => {
   const [open, setOpen] = React.useState(false);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  // const {token} = useToken()
+
+  //   React.useMemo(() => {
+
+  //     if(token === null){
+  //       window.location.href = "/login"
+  //     }
+
+  //   }, []);
+
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -247,3 +260,5 @@ export default function FacilityPage() {
     </DashboardLayout>
   );
 }
+
+export default WithAuth(FacilityPage);
