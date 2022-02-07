@@ -21,7 +21,8 @@ export const ErrorData = ({error}:{error:FetchBaseQueryError | SerializedError }
         <Container>
             <img src="/images/undraw_cancel_u-1-it.svg" alt="" height="50%" width="50%" />
             <Typography mt={8} variant="h4">
-                {data ? `${data.error.message}` : 'Something went wrong'}
+                {/* {data ? `${data.error.message}` : 'Something went wrong'} */}
+                Something went wrong
               {/* {data.error.message ?? 'Error fetching data'} */}
             </Typography>
         </Container>
