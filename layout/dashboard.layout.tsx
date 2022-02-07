@@ -1,7 +1,9 @@
 import { Theme, useMediaQuery, useTheme } from "@mui/material";
 import { styled } from "@mui/system";
+import router from "next/router";
 import React, { ReactElement, ReactNode, useEffect } from "react";
 import { SideBar, NavBar } from "../components";
+import { useToken } from "../hooks";
 
 const drawerWidth = 200;
 
@@ -21,6 +23,17 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
     const lg = useMediaQuery(theme.breakpoints.up('lg'));
     const sm = useMediaQuery(theme.breakpoints.up('sm'));
     const xs = useMediaQuery(theme.breakpoints.up('xs'));
+
+    const {token} = useToken()
+
+    React.useMemo(() => {
+
+      if(token === null){
+        window.location.href = "/login"
+      }
+
+    }, []);
+
     useEffect(() => {
         if (md) {
           setOpen(true);
@@ -69,11 +82,12 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
           
         }),
       }));
+
   return (
     <div>
       <SideBar open={open} drawerWidth={drawerWidth}/>
       <NavBar title={title} action={action} open={open} drawerWidth={drawerWidth}/>
-      <Main background={background} open={open}>{children}</Main>
+       <Main background={background} open={open}>{children}</Main>  
     </div>
   );
 };
