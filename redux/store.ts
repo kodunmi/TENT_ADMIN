@@ -11,7 +11,6 @@ import {
   REGISTER,
  } from 'redux-persist'
 // import storage from 'redux-persist/lib/storage'
-
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
 const createNoopStorage = () => {
@@ -34,7 +33,7 @@ const storage = typeof window !== "undefined" ? createWebStorage("local") : crea
 
 const reducers = combineReducers({
   [emptySplitApi.reducerPath]: emptySplitApi.reducer,
-  auth: authReducer
+  auth: authReducer,
 });
 
 const persistConfig = {
