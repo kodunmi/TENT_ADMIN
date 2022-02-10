@@ -24,24 +24,12 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
     const sm = useMediaQuery(theme.breakpoints.up('sm'));
     const xs = useMediaQuery(theme.breakpoints.up('xs'));
 
-    const {token} = useToken()
-
-    React.useMemo(() => {
-
-      if(token === null){
-        window.location.href = "/login"
-      }
-
-    }, []);
-
     useEffect(() => {
         if (md) {
           setOpen(true);
         } else {
           setOpen(false);
         }
-
-        console.log(md);
         
       }, [md]);
 
@@ -51,7 +39,7 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
         }else if(!md  && sm){
           setWidth(72)
         }
-        console.log(sm,xs,md);
+        
         
       }, [sm,xs,md])
 
@@ -62,8 +50,13 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
       }>(({ theme, open }) => ({
         flexGrow: 1,
         padding: theme.spacing(lg? 3 : 1),
-        height: lg ? "calc(100vh - 140px)" : "calc(100vh - 180px)",
-        overflow:"auto",
+        height: lg ? "calc(100vh - 120px)" : xs ? "calc(100vh - 240)" : "calc(100vh - 180px)",
+        // height: "100vh",
+        overflow:"scroll",
+        position: "fixed",
+        bottom: 0,
+        right: 0,
+        top: xs ? '140px' : '120px',
         
         backgroundColor: background == "deem"  ?  theme.palette.background.paper : theme.palette.action.hover,
         transition: theme.transitions.create("margin", {

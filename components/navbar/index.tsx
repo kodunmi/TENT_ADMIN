@@ -47,7 +47,6 @@ export function NavBar({ open, drawerWidth, action, title }) {
     } else if (!md && sm) {
       setWidth(72);
     }
-    console.log(sm, xs, md);
   }, [sm, xs, md]);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -73,7 +72,7 @@ export function NavBar({ open, drawerWidth, action, title }) {
 
   const StyledBreadcrumbs = styled(Box)(({ theme }) => ({
     backgroundColor: theme.palette.mode === "light" ? "#FAFAFA" : "#0e0e0e",
-    padding: "20px",
+    padding: "5px 20px",
     borderBottom: theme.palette.mode === "light" ? "1px solid #888888" : "none",
     position: "sticky",
     top: "0px",

@@ -63,7 +63,7 @@ const options = {
 };
 
 
-const ListItem = styled.div`
+export const ListItem = styled.div`
   display: flex;
   justify-content: space-between;
 `;
@@ -93,7 +93,7 @@ const Dashboard = () => {
 
   let mapData;
 
-  if(!loading && data.data) {
+  if(!loading && !cardError && data.data) {
     mapData = {
       labels: data.data.data.userChart.labels,
       datasets: [

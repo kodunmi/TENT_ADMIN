@@ -11,8 +11,9 @@ export interface TransactionResponse {
 
 const extendedApi = emptySplitApi.injectEndpoints({
     endpoints: (builder) => ({
-        getTransactions:builder.query<BaseResponse<TransactionResponse>,{pageNumber:number,sortBy:string,order:string}>({
-            query: ({pageNumber,sortBy,order}) => `/payment/all?pageNumber=${pageNumber}&sortBy=${sortBy}&order=${order}`
+        getTransactions:builder.query<BaseResponse<TransactionResponse>,{pageNumber:number}>({
+            // query: ({pageNumber,sortBy,order}) => `/payment/all?pageNumber=${pageNumber}&sortBy=${sortBy}&order=${order}`
+            query: ({pageNumber}) => `payment/all?pageNumber=${pageNumber}`
         }),
         getTransaction:builder.query<BaseResponse<PaymentType>,{transactionId:string}>({
             query: ({transactionId}) => `/payment/${transactionId}`

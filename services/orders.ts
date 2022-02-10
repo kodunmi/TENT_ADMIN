@@ -12,8 +12,9 @@ export interface OrderResponse {
 
 const extendedApi = emptySplitApi.injectEndpoints({
     endpoints: (builder) => ({
-        getOrders:builder.query<BaseResponse<OrderResponse>,{filterByStatus:string,filterByOrderId:string,pageNumber:number,sortBy:string,order:string}>({
-            query: ({filterByStatus,filterByOrderId,pageNumber,sortBy,order}) => `/order/all-orders?filterByStatus=${filterByStatus}&filterByOrderId=${filterByOrderId}&pageNumber=${pageNumber}&sortBy=${sortBy}&order=${order}`
+        getOrders:builder.query<BaseResponse<OrderResponse>,{pageNumber:number}>({
+            // query: ({filterByStatus,filterByOrderId,pageNumber,sortBy,order}) => `/order/all-orders?${filterByStatus ? 'filterByStatus'=filterByStatus : ''}&filterByOrderId=${filterByOrderId}&pageNumber=${pageNumber}&sortBy=${sortBy}&order=${order}`
+            query: ({pageNumber}) => `order/all-orders?pageNumber=${pageNumber}`
         }),
 
         getOrder:builder.query<BaseResponse<OrderType>,{orderId:string}>({

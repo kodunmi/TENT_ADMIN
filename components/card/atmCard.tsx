@@ -6,6 +6,8 @@ import { styled } from '@mui/material/styles';
 import { FacilityType } from '../../lib';
 import { CardFactoryType } from '../../services';
 
+
+
 const Container = styled2.div`
 position: relative;
 width: 100%;
@@ -50,45 +52,29 @@ export const AtmCard = (props:CardFactoryType) => {
         imgName = 'image.png'
     }
     return (
-        <Container>
-            <img src={`/images/cards/${imgName}`}alt="Snow" style={{ width: "100%", height: "100%" }} />
+        <Container style={{ backgroundImage: `url(/images/cards/${imgName})`, backgroundPosition: 'center', backgroundSize: 'cover' }} className={`bg-no-repeat px-3 py-8 mb-4 rounded-2xl`}>
+            {/* <img src={`/images/cards/${imgName}`}alt="Snow" style={{ width: "100%", height: "100%" }} /> */}
+           
+            <p>{`${props.estateLocation.city} - ${props.estateLocation.state}`}</p>
+           
             <div style={{
-                position: "absolute",
-                top: "20%",
-                left: "10%",
-
-            }} >
-                <h3>{`${props.estateLocation.city} - ${props.estateLocation.state}`}</h3>
-            </div>
-            <div style={{
-                position: "absolute",
-                top: "30%",
-                left: "10%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-
+                
+                display: 'flex',
+                alignItems: 'center',
 
             }} >
                 <h1 style={{ marginRight: '10px' }}> {`${props.totalLandSize} / ${props.landSizeSold}`}</h1>
-                <h3><i>Hecters</i></h3>
+                <p><i>Hecters</i></p>
             </div>
             <div style={{
-                position: "absolute",
-                top: "50%",
-                left: "10%",
-                width: "80%"
+                
 
             }} >
                 {LinearProgressWithLabel({ value: props.percentageLandSold })}
             </div>
-            <div style={{
-                position: "absolute",
-                top: "65%",
-                left: "10%",
-            }} >
-                <p>{`${props.landSizeSold} unit sold`}</p>
-            </div>
+            
+            <p>{`${props.landSizeSold} unit sold`}</p>
+            
 
         </Container>
     )

@@ -116,7 +116,14 @@ export interface OrderType {
     },
     landSize: number
     paymentMethod: "instalmentPayment" | 'fullPayment',
-    user: string
+    user: {
+        _id: string
+        fullName: string
+        email: string
+        phoneNumber: string
+        tentUserId: string
+        profileImage?: string
+    }
     estateName: string
     landEstimatedPrice: number
     building?: {
@@ -144,7 +151,7 @@ export interface PaymentType {
       phoneNumber: string
       tentUserId: string
       profileImage: string
-    } | string,
+    },
     order: {
       _id: string
       estateId: string

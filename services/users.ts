@@ -14,15 +14,19 @@ export interface RegisterUserRequest {
     email: string
     phoneNumber: string
     password: string
+    gender: string
+    dateOfBirth: string
 }
+
+
 
 const extendedApi = emptySplitApi.injectEndpoints({
     endpoints: (builder) => ({
-        getUsers: builder.query<BaseResponse<UsersType>, { pageNumber: 1 }>({
+        getUsers: builder.query<BaseResponse<UsersType>, { pageNumber: number }>({
             query: ({ pageNumber }) => `user/all-users?pageNumber?${pageNumber}`
         }),
 
-        getUser: builder.query<BaseResponse<UserDataType>, string>({
+        getUser: builder.query<BaseResponse<UserDataType>, string | string[]>({
             query: (id) => `user/user/${id}`
         }),
         addUser: builder.mutation<BaseResponse<UserDataType>, RegisterUserRequest>({
@@ -55,4 +59,4 @@ const extendedApi = emptySplitApi.injectEndpoints({
     })
 })
 
-export const { useGetUserQuery, useGetUsersQuery, useAddUserMutation, useEditProfileMutation, useDeleteUserMutation, useGetUserSammaryQuery } = extendedApi
+export const { useGetUserQuery, useGetUsersQuery, useAddUserMutation, useEditProfileMutation, useDeleteUserMutation, useGetUserSammaryQuery, useLazyGetUserQuery } = extendedApi
