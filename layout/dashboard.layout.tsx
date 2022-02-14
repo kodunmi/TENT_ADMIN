@@ -81,6 +81,7 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
       <SideBar open={open} drawerWidth={drawerWidth}/>
       <NavBar title={title} action={action} open={open} drawerWidth={drawerWidth}/>
        <Main background={background} open={open}>{children}</Main>  
+       {/* {children} */}
     </div>
   );
 };

@@ -19,6 +19,7 @@ import AccountCircle from "remixicon-react/User2LineIcon";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { Search } from "@mui/icons-material";
 import { SearchButton } from "..";
+import { useAuth } from "../../hooks";
 
 export function NavBar({ open, drawerWidth, action, title }) {
   const isDarkModeEnabled = useMediaQuery("(prefers-color-scheme: dark)");
@@ -33,6 +34,8 @@ export function NavBar({ open, drawerWidth, action, title }) {
     width: open ? `calc(100% - ${drawerWidth})` : "calc(100% - 50px)",
     float: !open ? "right" : "none",
   }));
+
+  const {user} = useAuth();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -179,7 +182,7 @@ export function NavBar({ open, drawerWidth, action, title }) {
               aria-label="account of current user"
               aria-controls={menuId}
               aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
+              // onClick={handleProfileMenuOpen}
               color="inherit"
             >
               <AccountCircle />
@@ -189,12 +192,12 @@ export function NavBar({ open, drawerWidth, action, title }) {
             <Grid container>
               <Grid md={12} item>
                 <Typography variant="subtitle1" component="p">
-                  Kodunmi Lekan
+                  {user.fullName}
                 </Typography>
               </Grid>
               <Grid md={12} item>
                 <Typography variant="overline" component="p">
-                  ID 444444
+                  {user.username}
                 </Typography>
               </Grid>
             </Grid>
@@ -205,7 +208,7 @@ export function NavBar({ open, drawerWidth, action, title }) {
               aria-label="show more"
               aria-controls={mobileMenuId}
               aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
+              // onClick={handleMobileMenuOpen}
               color="inherit"
             >
               <MoreIcon />

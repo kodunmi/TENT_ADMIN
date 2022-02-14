@@ -1,9 +1,26 @@
 import { Button, CircularProgress, Typography } from '@mui/material';
+import moment from 'moment';
 import MUIDataTable, { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables';
 import React, { useState } from 'react';
 import { WithAuth } from '../../HOC';
 import { DashboardLayout } from '../../layout';
 import { useGetOrdersQuery } from '../../services';
+import styled from "styled-components";
+
+
+interface StatusProps {
+    background: string
+  }
+
+const Status = styled.div`
+background: ${(props: StatusProps)=> props.background};
+border-radius: 154.324px;
+padding: 5px 10px;
+display: inline-block;
+height: fit-content;
+font-size: 14px;
+color: #fff;
+`
 
 const OrderPage = () => {
 
@@ -20,46 +37,86 @@ const OrderPage = () => {
                 createdAt: order.createdAt,
                 fullName: order.user.fullName,
                 phoneNumber: order.user.phoneNumber,
-                userID: order.user._id,
-                totalEstimatedPrice: order.totalEstimatedPrice,
-                building: `hello`,
-                status: "pending",
-                orderId: order._id,
-                total: order.totalEstimatedPrice,
+                userID: order.user.tentUserId,
+                landEstimatedPrice: Math.round( order.landEstimatedPrice),
+                building: order.building,
+                status: order.status,
+                orderID: order._id,
+                Total: order.totalEstimatedPrice,
             }
         })
     }
 
+    console.log(newOrder);
+
     const columns: MUIDataTableColumnDef[] = [
-        { name: "createdAt", label: "Date Created", options: { filter: true, sort: true } },
+        { name: "createdAt", label: "Date Created", options: { 
+            filter: true,
+             sort: true ,
+                customBodyRender: (value, tableMeta, updateValue) => {
+                    return (
+                        <Typography variant="body2">
+                            {moment(value).format('MMMM Do YYYY')}
+                        </Typography>
+                    )
+                }
+            }
+         },
         { name: "fullName", label: "Full Name" },
         { name: "phoneNumber", label: "Phone Number" },
         { name: "userID", label: "User ID" },
-        { name: "totalEstimatedPrice", label: "Total Estimated Price" },
-        { name: "building", label: "Building" },
-        {
-            name: "Status",
+        { name: "landEstimatedPrice", label: "Land Estimated Price" },
+        { 
+            name: "building", 
+            label: "Building",
+
             options: {
-                customBodyRender: (value, tableMeta, updateValue) => {
+                customBodyRender: (value: {
+                    buildingType: string
+                    numberOfRoom: number
+                    buildingEstimatedPrice: number
+                }, tableMeta, updateValue) => {
+
+                    if(value){
+                        return (
+                            <div>
+                                <Typography variant="body2">
+                                {`${value.numberOfRoom} Bedroom`}
+                                </Typography>
+                                <Typography variant="body2">
+                                {`${value.buildingType}`}
+                                </Typography>
+                            </div>
+                        )
+                    }else{
+                        return (
+                            <Typography variant="body2">
+                                No building
+                            </Typography>
+                        )
+                    }
+                    
+                }
+            }
+         },
+        { name: "status", label: "Status" },
+        {
+            name: "status",
+            label: "Status",
+            options: {
+                customBodyRender: (value:string, tableMeta, updateValue) => {
                     return (
-                        <Button
-                            className='bg-green-500 text-white'
-                            sx={{
-                                width: "102.97px",
-                                boxShadow: "none",
-                                borderRadius: "6px",
-                                fontSize: "13px",
-                                padding: "5px 10px",
-                                backgroundColor:
-                                    value === "processing"
-                                        ? "#3BEA1F"
-                                        : "#EACA1F",
-                            }}
-                            variant="contained"
-                            size="small"
-                        >
-                            {value}
-                        </Button>
+                        <div>
+                            {
+                            value.toLocaleLowerCase() == "terminate" && <Status background="red" >FAILED</Status>
+                            }
+                            {
+                            value.toLocaleLowerCase() === "complete" && <Status background="#04C300" >SUCCESSFUL</Status>
+                            }
+                            {
+                            value.toLocaleLowerCase() === "processing" && <Status background="#00A3FF">PROCESSING</Status>
+                            }   
+                        </div>
                     )
                 }
             }
@@ -80,10 +137,9 @@ const OrderPage = () => {
         filterType: "dropdown",
         responsive: "standard",
         tableBodyHeight: "100%",
-        rowsPerPage: 5,
-        rowsPerPageOptions: [5, 10, 20],
-        serverSide: true,
-        count: data?.data.pages,
+        rowsPerPage: 20,
+        serverSide: false,
+        count: data?.data.orderCount,
         page,
         onTableChange: (action, tableState) => {
             switch (action) {

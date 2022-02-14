@@ -43,6 +43,8 @@ import { RegisterUserRequest, useAddUserMutation, useGetUserSammaryQuery, useGet
 import MUIDataTable, { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
 import { LoadingButton } from "@mui/lab";
 import { useSnackbar } from 'notistack'
+import moment from "moment";
+import { statesOfNigeria, UserDataType } from "../../lib";
 
 
 
@@ -62,18 +64,11 @@ const Users = () => {
   const [filterBtn, setFilterBtn] = useState(true);
   const [page, setPage] = useState(1);
   const { enqueueSnackbar } = useSnackbar();
-  const [formState, setFormState] = React.useState<RegisterUserRequest>({
-    email: '',
-    password: '',
-    fullName: '',
-    phoneNumber: '',
-    gender: '',
-    dateOfBirth: ''
-  })
+  const [formState, setFormState] = React.useState<UserDataType>()
 
   const [addUser, { isLoading: addingUser }] = useAddUserMutation();
 
-  const { data, isLoading, error, refetch } = useGetUsersQuery({ pageNumber: page }, {
+  const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery({ pageNumber: page }, {
     refetchOnMountOrArgChange: true,
     refetchOnReconnect: true,
   });
@@ -93,8 +88,20 @@ const Users = () => {
 
   const handleChange = ({
     target: { name, value },
-  }: React.ChangeEvent<HTMLInputElement>) =>
-    setFormState((prev) => ({ ...prev, [name]: value }))
+  }: React.ChangeEvent<HTMLInputElement>) => {
+
+    const split = name.split('.')
+    if (split.length > 1) {
+      setFormState((prev) => ({
+        ...prev, [split[0]]: {
+          ...prev[split[0]],
+          [split[1]]: value
+        }
+      }))
+    } else {
+      setFormState((prev) => ({ ...prev, [name]: value }))
+    }
+  }
 
   const handleRegisterNewUser = async (e) => {
 
@@ -119,8 +126,35 @@ const Users = () => {
     { name: "name", label: "Name", options: { filterOptions: { fullWidth: true } } },
     { name: "phone", label: "Phone", options: { filterOptions: { fullWidth: true } } },
     { name: "email", label: "Email", options: { filterOptions: { fullWidth: true } } },
-    { name: "userID", label: "User ID", options: { filterOptions: { fullWidth: true } } },
-    { name: "status", label: "Status", options: { filterOptions: { fullWidth: true } } },
+    { name: "userID", label: "User ID", options: { filterOptions: { fullWidth: true } }
+    },
+    { name: "status", label: "Status", 
+    options: {
+      filterOptions: { 
+        fullWidth: true 
+       },
+       customBodyRender: (value: boolean, tableMeta, updateValue) => {
+         return (
+           <Button
+               sx={{
+                 width: "102.97px",
+                 boxShadow: "none",
+                 borderRadius: "6px",
+                 fontSize: "13px",
+                 padding: "5px 10px",
+                 backgroundColor: "#EACA1F",
+               }}
+               variant="contained"
+               size="small"
+               className={value ? "bg-green-300" : "bg-yellow-500"}
+             >
+              {value  ? "VERIFIED" : "UNVERIFIED"}
+             </Button>
+         )
+       }
+     
+     } 
+     },
     { name: "creator", label: "Creator", options: { filterOptions: { fullWidth: true } } },
     {
       name: "Delete",
@@ -166,15 +200,14 @@ const Users = () => {
     responsive: "standard",
     tableBodyHeight,
     tableBodyMaxHeight,
-    rowsPerPage: 5,
-    rowsPerPageOptions: [5, 10, 20],
-    serverSide: true,
-    count: data?.data.pages,
+    rowsPerPage: 20,
+    serverSide: false,
+    count: data?.data.userCount,
     page,
     onTableChange: (action, tableState) => {
       switch (action) {
         case "changePage":
-          setPage(tableState.page);
+          setPage(tableState.page + 1);
           break;
         default:
           break;
@@ -204,7 +237,7 @@ const Users = () => {
         phone: user.phoneNumber,
         email: user.email,
         userID: user.tentUserId,
-        status: user.accountVerified ? 'Verified' : 'Not Verified',
+        status: user.accountVerified,
         creator: user.creator,
 
       }
@@ -219,7 +252,7 @@ const Users = () => {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: { sm: "90%", md: 500, lg: 500 },
+    width: { sm: "90%", md: 500, lg: "90%", xs: "90%" },
     maxHeight: "90%",
     // overflowY: "auto",
     bgcolor: "background.paper",
@@ -250,7 +283,7 @@ const Users = () => {
               title="Add User information"
             />
             <CardContent sx={{ px: "50px" }}>
-              <Stack spacing={4}>
+              {/* <Stack spacing={4}>
                 <TentTextField
                   onChange={handleChange}
                   required
@@ -313,7 +346,403 @@ const Users = () => {
                     </TentTextField>{" "}
                   </Grid>
                 </Stack>
-              </Stack>
+              </Stack> */}
+              <Grid container spacing={3}>
+                <Grid lg={4} md={12} sm={12} xs={12} item>
+                  <Stack spacing={2}>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="fullName"
+                      type="text"
+                      placeholder="name"
+                      label="Your Name"
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="email"
+                      type="email"
+                      placeholder="email"
+                      label="Email"
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="phoneNumber"
+                      type="text"
+                      placeholder="phone"
+                      label="Phone"
+                      fullWidth
+                    />
+                    <Stack direction="row" spacing={2}>
+                      <Grid item lg={6} sm={6} md={6} xs={6}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="dateOfBirth"
+                          type="date"
+                          placeholder="name"
+                          label="Date of Birth"
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item lg={6} sm={6} md={6} xs={6}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          select
+                          name="gender"
+                          type="select"
+                          placeholder="Select gender"
+                          label="Gender"
+                          fullWidth
+                        >
+                          <MenuItem >Select gender</MenuItem>
+                          <MenuItem value="female">Female</MenuItem>
+                          <MenuItem value="male">Male</MenuItem>
+                        </TentTextField>{" "}
+                      </Grid>
+                    </Stack>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="password"
+                      type="password"
+                      placeholder="password"
+                      label="Password"
+                      fullWidth
+                    />
+                  </Stack>
+                </Grid>
+                <Grid lg={4} md={12} sm={12} xs={12} item>
+                  <Stack spacing={2}>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="residentialAddress.address"
+                      type="text"
+                      placeholder="Insert Address"
+                      label="Residential Address"
+                      fullWidth
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      select
+                      name="residentialAddress.state"
+                      type="select"
+                      placeholder="Select state"
+                      fullWidth
+                    >
+                      <MenuItem value="">
+                        <em>Select state</em>
+                      </MenuItem>
+                      {
+                        statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
+                      }
+
+                    </TentTextField>{" "}
+                    <Stack direction="row" spacing={2}>
+                      <Grid item lg={7} sm={7} md={7} xs={7}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="residentialAddress.city"
+                          type="text"
+                          placeholder="Select City"
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item lg={5} sm={5} md={5} xs={5}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="residentialAddress.zipCode"
+                          type="text"
+                          placeholder="Zip code"
+                          fullWidth
+                        />
+                      </Grid>
+                    </Stack>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      select
+                      name="stateOfOrigin"
+                      type="select"
+                      placeholder="Select state"
+                      label="State of Origin"
+                      fullWidth
+                    >
+                      <MenuItem value="">
+                        <em>Select state</em>
+                      </MenuItem>
+                      {
+                        statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
+                      }
+
+                    </TentTextField>{" "}
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      select
+                      name="maritalStatus"
+                      type="select"
+                      label="Marital Status"
+                      fullWidth
+                    >
+                      <MenuItem value="">
+                        <em>Select status</em>
+                      </MenuItem>
+                      <MenuItem value="married">Married</MenuItem>
+                      <MenuItem value="single" >Single</MenuItem>
+                    </TentTextField>{" "}
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="occupation"
+                      type="text"
+                      label="Occupation"
+                      fullWidth
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="businessAddress.address"
+                      type="text"
+                      placeholder="Insert Address"
+                      label="Office Address"
+                      fullWidth
+                    />
+                    <Stack direction="row" spacing={2}>
+                      <Grid item lg={7} sm={7} md={7} xs={7}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="businessAddress.city"
+                          type="text"
+                          placeholder="Select City"
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item lg={5} sm={5} md={5} xs={5}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="businessAddress.zipCode"
+                          type="text"
+                          placeholder="Zip code"
+                          fullWidth
+                        />
+                      </Grid>
+
+                    </Stack>
+                    <Stack>
+                      <TentTextField
+                        required
+                        onChange={handleChange}
+                        sx={{
+                          border: "none",
+                          backgroundColor: "action.hover",
+                          borderRadius: "5px",
+                        }}
+                        select
+                        name="businessAddress.state"
+                        type="select"
+                        placeholder="Select state"
+                        fullWidth
+                      >
+                        <MenuItem value={undefined}>
+                          <em>Select state</em>
+                        </MenuItem>
+                        {
+                          statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
+                        }
+
+                      </TentTextField>{" "}
+                    </Stack>
+                  </Stack>
+                </Grid>
+                <Grid lg={4} md={12} sm={12} xs={12} item>
+                  <Stack spacing={2}>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="nextOfKin.name"
+                      type="text"
+                      placeholder="Next of Kin"
+                      label="Name of Next of Kin"
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="nextOfKin.address"
+                      type="text"
+                      placeholder="Insert Address"
+                      label="Next of Kin Address"
+                      fullWidth
+                    />
+                    <Stack direction="row" spacing={2}>
+                      <Grid item lg={7} sm={7} md={7} xs={7}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="nextOfKin.city"
+                          type="text"
+                          placeholder="Select City"
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item lg={5} sm={5} md={5} xs={5}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          select
+                          name="nextOfKin.state"
+                          type="select"
+                          placeholder="Select state"
+                          fullWidth
+                        >
+                          <MenuItem value={undefined}>
+                            <em>Select state</em>
+                          </MenuItem>
+                          {
+                            statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
+                          }
+
+                        </TentTextField>{" "}
+                      </Grid>
+                    </Stack>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="nextOfKin.phoneNumber"
+                      type="text"
+                      placeholder="Phone"
+                      label="Next of Kin Phone"
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="nextOfKin.relationship"
+                      type="text"
+                      placeholder="Relationship"
+                      label="What's your relationship"
+                    />
+                  </Stack>
+                </Grid>
+              </Grid>
             </CardContent>
             <CardActions
               sx={{
@@ -323,7 +752,7 @@ const Users = () => {
                 padding: "32px 50px",
               }}
             >
-              <LoadingButton type="submit" loading={addingUser} fullWidth variant="contained">
+              <LoadingButton className="bg-blue-500" type="submit" loading={addingUser} fullWidth variant="contained">
                 Save & Continue
               </LoadingButton>
 
@@ -395,6 +824,7 @@ const Users = () => {
                       color="primary"
                       variant="contained"
                       disableElevation
+                      className="bg-blue-500"
                     >
                       Add new user
                     </Button>
@@ -405,7 +835,7 @@ const Users = () => {
                   <MUIDataTable
                     title={
                       <Typography variant="h6">
-                        {isLoading && (
+                        {isFetching && (
                           <CircularProgress
                             size={24}
                             style={{ marginLeft: 15, position: "relative", top: 4 }}

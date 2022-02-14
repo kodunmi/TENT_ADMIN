@@ -43,6 +43,7 @@ export interface UserDataType {
     stateOfOrigin?: string
     maritalStatus?: "single" | "married"
     occupation?: string
+    password?: string
     nextOfKin?: {
         name: string
         relationship: string

@@ -23,13 +23,13 @@ export interface RegisterUserRequest {
 const extendedApi = emptySplitApi.injectEndpoints({
     endpoints: (builder) => ({
         getUsers: builder.query<BaseResponse<UsersType>, { pageNumber: number }>({
-            query: ({ pageNumber }) => `user/all-users?pageNumber?${pageNumber}`
+            query: ({ pageNumber }) => `user/all-users?pageNumber=${pageNumber}`
         }),
 
         getUser: builder.query<BaseResponse<UserDataType>, string | string[]>({
             query: (id) => `user/user/${id}`
         }),
-        addUser: builder.mutation<BaseResponse<UserDataType>, RegisterUserRequest>({
+        addUser: builder.mutation<BaseResponse<UserDataType>, UserDataType>({
             query: (body) => ({
                 url: 'user/admin/reg-user',
                 method: 'POST',

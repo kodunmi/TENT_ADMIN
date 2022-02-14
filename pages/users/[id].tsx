@@ -48,7 +48,11 @@ const User = ({params}:{params: ParsedUrlQuery} )=> {
   
   const formRef = React.useRef<HTMLFormElement>(null);
   const [editProfile, { isLoading: isEditing }] = useEditProfileMutation()
-  const [trigger, result, lastPromiseInfo] = useLazyGetUserQuery()
+  const [trigger, result, lastPromiseInfo] = useLazyGetUserQuery({
+    refetchOnReconnect: true,
+    pollingInterval: 5
+
+  })
   const [formState, setFormState] = React.useState<UserDataType>(null);
   const { enqueueSnackbar } = useSnackbar();
 

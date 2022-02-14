@@ -20,7 +20,7 @@ const Transactions = () => {
     const [startDate, setStartDate] = useState(tenDaysBefore);
     const [endDate, setEndDate] = useState(today);
     const [page, setPage] = useState(1);
-    const { data, isLoading, error } = useGetTransactionsQuery({ pageNumber: page }, {
+    const { data, isLoading, error, isFetching } = useGetTransactionsQuery({ pageNumber: page }, {
         refetchOnMountOrArgChange: true,
         refetchOnReconnect: true,
     });
@@ -46,7 +46,7 @@ const Transactions = () => {
                 createdAt: transaction.createdAt,
                 orderID: transaction.order.orderId,
                 fullName: transaction.user.fullName,
-                userID: transaction.user._id,
+                userID: transaction.user.tentUserId,
                 amount: transaction.amount,
                 transRef: transaction.flw_ref,
 
@@ -109,9 +109,8 @@ const Transactions = () => {
         responsive: "standard",
         tableBodyHeight: "400px",
         rowsPerPage: 20,
-        rowsPerPageOptions: [5, 10, 20],
-        serverSide: true,
-        count: data ? data.data.paymentCount : 0,
+        serverSide: false,
+        count: data?.data.paymentCount,
         page,
         onTableChange: (action, tableState) => {
             switch (action) {
@@ -194,7 +193,7 @@ const Transactions = () => {
                         <MUIDataTable
                             title={
                                 <Typography variant="h6">
-                                    {isLoading && (
+                                    {isFetching && (
                                         <CircularProgress
                                             size={24}
                                             style={{ marginLeft: 15, position: "relative", top: 4 }}
