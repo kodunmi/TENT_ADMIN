@@ -50,8 +50,6 @@ const User = ({params}:{params: ParsedUrlQuery} )=> {
   const [editProfile, { isLoading: isEditing }] = useEditProfileMutation()
   const [trigger, result, lastPromiseInfo] = useLazyGetUserQuery({
     refetchOnReconnect: true,
-    pollingInterval: 5
-
   })
   const [formState, setFormState] = React.useState<UserDataType>(null);
   const { enqueueSnackbar } = useSnackbar();
@@ -67,7 +65,7 @@ const User = ({params}:{params: ParsedUrlQuery} )=> {
   
   useEffect(() => {
       trigger(params.id)
-  }, [params, trigger]);
+  }, []);
 
   useEffect(() => {
     if (result.isSuccess && result.isLoading === false) {

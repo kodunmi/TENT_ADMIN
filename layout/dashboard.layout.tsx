@@ -14,6 +14,42 @@ interface DashboardLayoutProps{
   background?: "light" | "deem"
 }
 
+const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
+  open?: boolean;
+  background?: "light" | "deem"
+  theme?: Theme
+  width:number
+  lg?:boolean
+  xs?:boolean
+}>(({ theme, open, background, width, lg, xs }) => ({
+  flexGrow: 1,
+  padding: theme.spacing(lg? 3 : 1),
+  height: lg ? "calc(100vh - 120px)" : xs ? "calc(100vh - 240)" : "calc(100vh - 180px)",
+  // height: "100vh",
+  overflow:"scroll",
+  position: "fixed",
+  bottom: 0,
+  right: 0,
+  top: xs ? '140px' : '120px',
+  
+  backgroundColor: background == "deem"  ?  theme.palette.background.paper : theme.palette.action.hover,
+  transition: theme.transitions.create("margin", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  float:'right',
+  width: `calc(100vw - ${width}px)`,
+  ...(open && {
+    transition: theme.transitions.create("margin", {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    // marginLeft: drawerWidth,
+    width: `calc(100vw - ${drawerWidth}px)`,
+    
+  }),
+}));
+
 
 export const DashboardLayout = ({ children , title, action, background}: DashboardLayoutProps) => {
     const [open, setOpen] = React.useState(false);
@@ -43,44 +79,13 @@ export const DashboardLayout = ({ children , title, action, background}: Dashboa
         
       }, [sm,xs,md])
 
-    const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
-        open?: boolean;
-        background?: "light" | "deem"
-        theme?: Theme
-      }>(({ theme, open }) => ({
-        flexGrow: 1,
-        padding: theme.spacing(lg? 3 : 1),
-        height: lg ? "calc(100vh - 120px)" : xs ? "calc(100vh - 240)" : "calc(100vh - 180px)",
-        // height: "100vh",
-        overflow:"scroll",
-        position: "fixed",
-        bottom: 0,
-        right: 0,
-        top: xs ? '140px' : '120px',
-        
-        backgroundColor: background == "deem"  ?  theme.palette.background.paper : theme.palette.action.hover,
-        transition: theme.transitions.create("margin", {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        float:'right',
-        width: `calc(100vw - ${width}px)`,
-        ...(open && {
-          transition: theme.transitions.create("margin", {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-          // marginLeft: drawerWidth,
-          width: `calc(100vw - ${drawerWidth}px)`,
-          
-        }),
-      }));
+    
 
   return (
     <div>
       <SideBar open={open} drawerWidth={drawerWidth}/>
       <NavBar title={title} action={action} open={open} drawerWidth={drawerWidth}/>
-       <Main background={background} open={open}>{children}</Main>  
+       <Main lg={lg} xs={xs} width={width} background={background} open={open}>{children}</Main>  
        {/* {children} */}
     </div>
   );

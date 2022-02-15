@@ -99,7 +99,6 @@ const OrderPage = () => {
                 }
             }
          },
-        { name: "status", label: "Status" },
         {
             name: "status",
             label: "Status",
@@ -111,7 +110,7 @@ const OrderPage = () => {
                             value.toLocaleLowerCase() == "terminate" && <Status background="red" >FAILED</Status>
                             }
                             {
-                            value.toLocaleLowerCase() === "complete" && <Status background="#04C300" >SUCCESSFUL</Status>
+                            value.toLocaleLowerCase() === "completed" && <Status background="#04C300" >COMPLETED</Status>
                             }
                             {
                             value.toLocaleLowerCase() === "processing" && <Status background="#00A3FF">PROCESSING</Status>
