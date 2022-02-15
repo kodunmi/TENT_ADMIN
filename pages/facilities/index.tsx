@@ -8,7 +8,7 @@ import router from "next/router";
 import Delete from "remixicon-react/DeleteBinLineIcon";
 import Edit from "remixicon-react/PencilLineIcon";
 import View from 'remixicon-react/EyeLineIcon'
-import { FacilityMutationType, useAddFacilityMutation, useGetCardFacilitiesQuery, useGetFacilitiesQuery, useGetFacilitySummaryQuery, } from "../../services";
+import { FacilityMutationType, useAddFacilityMutation, useGetCardFacilitiesQuery, useGetFacilitiesQuery, useGetFacilitySummaryQuery, useUpdateFacilityMutation, } from "../../services";
 import { useToken } from "../../hooks";
 import { WithAuth } from "../../HOC";
 import { LoadingButton } from "@mui/lab";
@@ -44,7 +44,6 @@ const columns: Column[] = [
   { id: "estateName", label: "ESTATE NAME", minWidth: 200 },
   { id: "totalLandSize", label: "SIZE (sqm)" },
   { id: "estateId", label: "ESTATE ID." },
-  { id: "creator", label: "CREATOR" },
   {
     id: "view",
     label: "View",
@@ -81,20 +80,56 @@ const clickSearchButton = () => {
 const FacilityPage = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = React.useState(false);
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const [openEdit, setOpenEdit] = React.useState<{toggle?:boolean, id?:string}>({toggle:false, id:''});
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const [formState, setFormState] = React.useState<FacilityMutationType>({
+  const [formState, setFormState] = React.useState<FacilityMutationType>(undefined);
+  const [formStateEdit, setFormStateEdit] = React.useState<FacilityMutationType>({
     estateName: "",
     estateDescription: "",
-  });
+  })
   const [addFacility, result] = useAddFacilityMutation()
+  const [editFacility, resultEdit] = useUpdateFacilityMutation()
   const [buildings, setBuildings] = React.useState<number>(0);
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
+  const { data: cardData, error: cardDataError, isLoading: isLoadingCardData, isFetching } = useGetCardFacilitiesQuery('', {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: true
+  })
+
+  const { refetch, data, error, isLoading } = useGetFacilitiesQuery({ pageNumber: 1 }, {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: true
+  })
+
+  const { data: facilityData, error: facilityError, isLoading: loadingError } = useGetFacilitySummaryQuery('', {
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: true
+  })
+
+
+  const handleChange2 = ({
+    target: { name, value },
+  }: React.ChangeEvent<HTMLInputElement>) => {
+
+    const split = name.split('.')
+    if (split.length > 1) {
+      setFormStateEdit((prev) => ({
+        ...prev, [split[0]]: {
+          ...prev[split[0]],
+          [split[1]]: value
+        }
+      }))
+    } else {
+      setFormStateEdit((prev) => ({ ...prev, [name]: value }))
+    }
+  }
   
 
   const handleChange = ({
@@ -137,20 +172,39 @@ const FacilityPage = () => {
     }
   }
 
-  const { data: cardData, error: cardDataError, isLoading: isLoadingCardData, isFetching } = useGetCardFacilitiesQuery('', {
-    refetchOnMountOrArgChange: true,
-    refetchOnReconnect: true
-  })
+  const handleEditFac = async (e:React.FormEvent<HTMLFormElement>) => {
 
-  const { data, error, isLoading } = useGetFacilitiesQuery({ pageNumber: 1 }, {
-    refetchOnMountOrArgChange: true,
-    refetchOnReconnect: true
-  })
+    e.preventDefault()
 
-  const { data: facilityData, error: facilityError, isLoading: loadingError } = useGetFacilitySummaryQuery('', {
-    refetchOnMountOrArgChange: true,
-    refetchOnReconnect: true
-  })
+    try {
+      const resp = await editFacility({
+        facility: formStateEdit,
+        id: openEdit.id
+      }).unwrap()
+
+      console.log(resp);
+
+      refetch()
+
+
+      enqueueSnackbar('Facility Edited Successfully', { variant: 'success' })
+
+
+      setFormStateEdit(undefined)
+
+      setOpenEdit({toggle:false, id:''})
+
+      
+
+    } catch (err) {
+
+      enqueueSnackbar(err.data ? err.data.message : "We could not process your request", {
+        variant: 'warning'
+      });
+    }
+  }
+
+ 
 
   const style = {
     position: "absolute" as "absolute",
@@ -441,12 +495,221 @@ const FacilityPage = () => {
   }
 
 
+  const EditFacilityModal = () => {
+    return (
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={openEdit.toggle}
+        onClose={() => setOpenEdit({ toggle: false })}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={openEdit.toggle}>
+          <form onSubmit={handleEditFac}>
+            <Card style={{ overflowY: "auto" }} sx={style}>
+              <CardHeader
+                sx={{
+                  borderBottom: "1px solid #F5F5F5",
+                  padding: "70px 0px 10px 0px",
+                  textAlign: "center",
+                }}
+                title={`Edit ${ formStateEdit?.estateName}`}
+              />
+              {
+                formStateEdit && (
+                  <CardContent sx={{ px: "50px" }}>
+                <Stack spacing={3}>
+                  <Stack spacing={2}>
+                    <TentTextField
+                      required
+                      onChange={handleChange2}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="estateLocation.address"
+                      type="text"
+                      placeholder="Insert Address"
+                      label="Estate Location"
+                      value={ formStateEdit?.estateLocation?.address}
+                      fullWidth
+                    />
+                    <TextField
+                      required
+                      onChange={handleChange2}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      select
+                      label="Select state"
+                      name="estateLocation.state"
+                      type="select"
+                      placeholder="Select state"
+                      value={formStateEdit?.estateLocation?.state}
+                      fullWidth
+                    >
+                      <MenuItem value="">
+                        <em>Select state</em>
+                      </MenuItem>
+                      {
+                        statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
+                      }
+
+                    </TextField>{" "}
+                    <Stack direction="row" spacing={2}>
+                      <Grid item lg={7} sm={7} md={7} xs={7}>
+                        <TentTextField
+                          required
+                          onChange={handleChange2}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="estateLocation.city"
+                          type="text"
+                          placeholder="Select City"
+                          value={formStateEdit?.estateLocation?.city}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item lg={5} sm={5} md={5} xs={5}>
+                        <TentTextField
+                          required
+                          onChange={handleChange2}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="estateLocation.zipCode"
+                          type="text"
+                          placeholder="Zip code"
+                          value={formStateEdit?.estateLocation?.zipCode}
+                          fullWidth
+                        />
+                      </Grid>
+                    </Stack>
+
+
+
+
+                    <TentTextField
+                      required
+                      onChange={handleChange2}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="estateName"
+                      placeholder="Enter estate name"
+                      type="text"
+                      label="Estate Information"
+                      value={openEdit && formStateEdit && formStateEdit.estateName}
+                      fullWidth
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange2}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="estateDescription"
+                      type="text"
+                      placeholder="Enter estate description"
+                      fullWidth
+                      value={openEdit && formStateEdit && formStateEdit.estateDescription}
+                      minRows={5}
+                      multiline
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange2}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="totalLandSize"
+                      placeholder="Enter total land size"
+                      type="number"
+                      label="Land Information"
+                      value={openEdit && formStateEdit && formStateEdit.totalLandSize}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SizeIcon />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Typography variant="caption">
+                              Sqm
+                            </Typography>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange2}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="totalLandPrice"
+                      placeholder="Enter total land price"
+                      type="number"
+                      value={openEdit && formStateEdit && formStateEdit.totalLandPrice}
+                      fullWidth
+                    />
+                  </Stack>
+                </Stack>
+              </CardContent>
+                )
+              }
+              
+              <CardActions
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "32px 50px",
+                }}
+              >
+                <LoadingButton loading={resultEdit.isLoading} className="bg-blue-500" type="submit" fullWidth variant="contained">
+                  Save & Continue
+                </LoadingButton>
+
+              </CardActions>
+            </Card>
+          </form>
+
+        </Fade>
+      </Modal>
+    )
+  }
+
+
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
   return (
     <DashboardLayout
       title={<Typography variant="h4">Facilities</Typography>}
@@ -550,7 +813,18 @@ const FacilityPage = () => {
                                             <Delete />
                                           </IconButton>
                                         ) : column.id === "edit" ? (
-                                          <IconButton>
+                                          <IconButton onClick={() => { setFormStateEdit({
+                                            estateDescription: row.estateDescription,
+                                            estateName: row.estateName,
+                                            totalLandPrice: row.totalLandPrice,
+                                            totalLandSize: row.totalLandSize,
+                                            estateLocation: {
+                                              address: row.estateLocation.address,
+                                              city: row.estateLocation.city,
+                                              state: row.estateLocation.state,
+                                              zipCode: row.estateLocation.zipCode,
+                                            }
+                                          }); setOpenEdit({toggle: true, id: row._id})}}>
                                             <Edit />
                                           </IconButton>
                                         ) : (
@@ -594,6 +868,7 @@ const FacilityPage = () => {
         )
       }
       {AddFacilityModal()}
+      {EditFacilityModal()}
 
     </DashboardLayout>
   );

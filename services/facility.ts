@@ -45,7 +45,6 @@ export interface FacilityMutationType {
         state: string
         zipCode: number
     },
-    buildings?: Array<BuildingType>
     totalLandSize?: number
     totalLandPrice?: number
     estateDescription?: string
@@ -70,10 +69,10 @@ const extendedApi = emptySplitApi.injectEndpoints({
             })
         }),
 
-        updateFacility:builder.mutation<BaseResponse<FacilityType>, {facility:FacilityMutationType,id:string}>({
+        updateFacility:builder.mutation<BaseResponse<FacilityType>, {facility:FacilityType,id:string}>({
             query: ({id,facility}) => ({
                 url: `/facility/edit/${id}`,
-                method: 'POST',
+                method: 'PUT',
                 body: facility,
             })
         }),
@@ -86,9 +85,9 @@ const extendedApi = emptySplitApi.injectEndpoints({
             })
         }),
 
-        removeBuilding:builder.mutation<BaseResponse<FacilityType>, {id:string,buildingId:string}>({
-            query: ({id,buildingId}) => ({
-                url: `/facility/remove-building?facilityId=${id}&buildingId=${buildingId}`,
+        removeBuilding:builder.mutation<BaseResponse<FacilityType>, {facilityId:string,buildingId:string}>({
+            query: ({facilityId,buildingId}) => ({
+                url: `/facility/remove-building?facilityId=${facilityId}&buildingId=${buildingId}`,
                 method: 'PATCH',
             })
         }),
