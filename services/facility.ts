@@ -23,7 +23,7 @@ interface FacilityResponse {
 }
 
 
-interface SingleFacilityResponse {
+export interface SingleFacilityResponse {
     summary:{
         totalLandSize: number
         totalBuildingSold: number
@@ -34,11 +34,11 @@ interface SingleFacilityResponse {
         page: number
         pages: number
         statusCount: number
-        status:Array<any>
+        status:Array<{building: string, dateCreated: string, fullName: string, orderId: string, orderSize: number, phoneNumber: string, status: 'processing' | 'completed' | 'terminated', userId:string}>
 }
 }
 
-interface FacilityMutationType {
+export interface FacilityMutationType {
     estateLocation?: {
         address: string
         city: string
@@ -49,6 +49,7 @@ interface FacilityMutationType {
     totalLandSize?: number
     totalLandPrice?: number
     estateDescription?: string
+    estateName?: string
 }
 
 const extendedApi = emptySplitApi.injectEndpoints({
@@ -57,7 +58,7 @@ const extendedApi = emptySplitApi.injectEndpoints({
             query: ({searchEstateName,pageNumber,sortBy,order}) => `/facility/all?pageNumber=${pageNumber}${searchEstateName ? `&searchEstateName=${searchEstateName}`:''}${sortBy ? `&sortBy=${sortBy}`:''}${order ? `&order=${order}`:''}`,
         }),
 
-        getFacility:builder.query<BaseResponse<SingleFacilityResponse>, {id:string | string[],estateStatusPageNumber:number}>({
+        getFacility:builder.query<BaseResponse<SingleFacilityResponse>, {id:string,estateStatusPageNumber:number}>({
             query: ({id,estateStatusPageNumber}) => `/facility/single/${id}?estateStatusPageNumber=${estateStatusPageNumber}`
         }),
 
@@ -121,5 +122,6 @@ export const {
     useRemoveBuildingMutation,
     useUpdateFacilityMutation,
     useGetFacilityQuery,
-    useGetCardFacilitiesQuery
+    useGetCardFacilitiesQuery,
+    useLazyGetFacilityQuery
 } = extendedApi

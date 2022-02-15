@@ -1,16 +1,20 @@
 import * as React from "react";
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import { DashboardLayout } from "../../layout";
-import { Button, CardHeader, Grid, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography, IconButton } from "@mui/material";
-import { AtmCard, DataCountCard, ErrorData, FixedHeightGrid, SearchButton, TentCard, TentSpinner } from "../../components";
-import { FacilityType } from "../../lib";
+import { Button, CardHeader, Grid, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography, IconButton, Modal, Fade, Card, Backdrop, CardContent, MenuItem, CardActions, TextField, InputAdornment } from "@mui/material";
+import { AtmCard, DataCountCard, ErrorData, FixedHeightGrid, SearchButton, TentCard, TentSpinner, TentTextField } from "../../components";
+import { FacilityType, statesOfNigeria } from "../../lib";
 import router from "next/router";
 import Delete from "remixicon-react/DeleteBinLineIcon";
 import Edit from "remixicon-react/PencilLineIcon";
 import View from 'remixicon-react/EyeLineIcon'
-import { useGetCardFacilitiesQuery, useGetFacilitiesQuery, useGetFacilitySummaryQuery } from "../../services";
+import { FacilityMutationType, useAddFacilityMutation, useGetCardFacilitiesQuery, useGetFacilitiesQuery, useGetFacilitySummaryQuery, } from "../../services";
 import { useToken } from "../../hooks";
 import { WithAuth } from "../../HOC";
+import { LoadingButton } from "@mui/lab";
+import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
+import SizeIcon from "remixicon-react/ShapeLineIcon";
+import { useSnackbar } from 'notistack'
 
 
 interface Column {
@@ -75,25 +79,64 @@ const clickSearchButton = () => {
 };
 
 const FacilityPage = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = React.useState(false);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  // const {token} = useToken()
-
-  //   React.useMemo(() => {
-
-  //     if(token === null){
-  //       window.location.href = "/login"
-  //     }
-
-  //   }, []);
-
+  const [formState, setFormState] = React.useState<FacilityMutationType>({
+    estateName: "",
+    estateDescription: "",
+  });
+  const [addFacility, result] = useAddFacilityMutation()
+  const [buildings, setBuildings] = React.useState<number>(0);
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
+
+  
+
+  const handleChange = ({
+    target: { name, value },
+  }: React.ChangeEvent<HTMLInputElement>) => {
+
+    const split = name.split('.')
+    if (split.length > 1) {
+      setFormState((prev) => ({
+        ...prev, [split[0]]: {
+          ...prev[split[0]],
+          [split[1]]: value
+        }
+      }))
+    } else {
+      setFormState((prev) => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleAddFac = async (e:React.FormEvent<HTMLFormElement>) => {
+
+    e.preventDefault()
+
+    try {
+      const resp = await addFacility(formState).unwrap()
+
+      console.log(resp);
+
+      router.push('facilities/[id]', `/facilities/${resp.data._id}`)
+      
+      enqueueSnackbar('Facility Added Successfully', { variant: 'success' })
+
+      
+
+    } catch (err) {
+
+      enqueueSnackbar(err.data ? err.data.message : "We could not process your request", {
+        variant: 'warning'
+      });
+    }
+  }
+
   const { data: cardData, error: cardDataError, isLoading: isLoadingCardData, isFetching } = useGetCardFacilitiesQuery('', {
     refetchOnMountOrArgChange: true,
     refetchOnReconnect: true
@@ -109,7 +152,293 @@ const FacilityPage = () => {
     refetchOnReconnect: true
   })
 
-  if (!isLoading) console.log(data);
+  const style = {
+    position: "absolute" as "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: { sm: "90%", md: 500, lg: "500", xs: "90%" },
+    maxHeight: "80%",
+    // overflowY: "auto",
+    bgcolor: "background.paper",
+    boxShadow: 24,
+  };
+
+
+  const AddFacilityModal = () => {
+    return (
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={open}
+        onClose={handleClose}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={open}>
+          <form onSubmit={handleAddFac}>
+            <Card style={{ overflowY: "auto" }} sx={style}>
+              <CardHeader
+                sx={{
+                  borderBottom: "1px solid #F5F5F5",
+                  padding: "70px 0px 10px 0px",
+                  textAlign: "center",
+                }}
+                title="Add new facility"
+              />
+              <CardContent sx={{ px: "50px" }}>
+                <Stack spacing={3}>
+                  <Stack spacing={2}>
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="estateLocation.address"
+                      type="text"
+                      placeholder="Insert Address"
+                      label="Estate Location"
+                      fullWidth
+                    />
+                    <TextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      select
+                      label="Select state"
+                      name="estateLocation.state"
+                      type="select"
+                      placeholder="Select state"
+                      fullWidth
+                    >
+                      <MenuItem value="">
+                        <em>Select state</em>
+                      </MenuItem>
+                      {
+                        statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
+                      }
+
+                    </TextField>{" "}
+                    <Stack direction="row" spacing={2}>
+                      <Grid item lg={7} sm={7} md={7} xs={7}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="estateLocation.city"
+                          type="text"
+                          placeholder="Select City"
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item lg={5} sm={5} md={5} xs={5}>
+                        <TentTextField
+                          required
+                          onChange={handleChange}
+                          sx={{
+                            border: "none",
+                            backgroundColor: "action.hover",
+                            borderRadius: "5px",
+                          }}
+                          name="estateLocation.zipCode"
+                          type="text"
+                          placeholder="Zip code"
+                          fullWidth
+                        />
+                      </Grid>
+                    </Stack>
+
+
+
+
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="estateName"
+                      placeholder="Enter estate name"
+                      type="text"
+                      label="Estate Information"
+                      fullWidth
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="estateDescription"
+                      type="text"
+                      placeholder="Enter estate description"
+                      fullWidth
+                      minRows={5}
+                      multiline
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="totalLandSize"
+                      placeholder="Enter total land size"
+                      type="number"
+                      label="Land Information"
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SizeIcon />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Typography variant="caption">
+                              Sqm
+                            </Typography>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <TentTextField
+                      required
+                      onChange={handleChange}
+                      sx={{
+                        border: "none",
+                        backgroundColor: "action.hover",
+                        borderRadius: "5px",
+                      }}
+                      name="totalLandPrice"
+                      placeholder="Enter total land price"
+                      type="number"
+                      fullWidth
+                    />
+
+                    {/* <Typography variant="h6" textAlign='center' gutterBottom>
+                      Click on add Building button to add building
+                    </Typography> */}
+
+                      {
+                        [...Array(buildings)].map((e, i) =>
+                        <div style={{ textAlign: 'center', marginBottom:'20', borderBottom: '1px solid gray', paddingBottom:'20px' }}>
+
+                      <Stack direction='row' justifyContent='space-between'>
+                        <Typography variant="h6">
+                          # {i + 1}
+                        </Typography>
+                        <Button onClick={() => setBuildings((state) => state + 1 )} sx={{ borderRadius:'20px' , mb:'15px' }} variant="outlined" color="info">
+                        <AddCircleOutline />
+                        Add Building
+                        </Button>
+                        <Button onClick={() => setBuildings((state) => state - 1 )} sx={{ borderRadius:'20px' , mb:'15px' }} variant="outlined" color="error">
+                        
+                        <RemoveCircleOutline />
+                         Remove Building
+                      </Button>
+                      </Stack>
+              
+                      
+                      <TentTextField
+                        required
+                        onChange={handleChange}
+                        sx={{
+                          border: "none",
+                          backgroundColor: "action.hover",
+                          borderRadius: "5px",
+                          marginBottom: "15px",
+                        }}
+                        name="buildings[].buildingType"
+                        placeholder="Enter building type"
+                        type="text"
+                        fullWidth
+                      />
+                      <Stack direction="row" spacing={2}>
+                        <Grid item lg={7} sm={7} md={7} xs={7}>
+                          <TentTextField
+                            required
+                            onChange={handleChange}
+                            sx={{
+                              border: "none",
+                              backgroundColor: "action.hover",
+                              borderRadius: "5px",
+                            }}
+                            name="buildings[].price"
+                            type="text"
+                            placeholder="Enter building price"
+                            fullWidth
+                          />
+                        </Grid>
+                        <Grid item lg={5} sm={5} md={5} xs={5}>
+                          <TentTextField
+                            required
+                            onChange={handleChange}
+                            sx={{
+                              border: "none",
+                              backgroundColor: "action.hover",
+                              borderRadius: "5px",
+                            }}
+                            name="buildings[].numberOfRoom"
+                            type="text"
+                            placeholder="number of rooms"
+                            fullWidth
+                          />
+                        </Grid>
+                      </Stack>
+                    </div>
+                        )
+                      }
+
+                    {/* <Button onClick={() => setBuildings((state) => state + 1 )}>
+                      <AddCircleOutline />
+                      Add Building
+                    </Button> */}
+
+
+                  </Stack>
+                </Stack>
+              </CardContent>
+              <CardActions
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "32px 50px",
+                }}
+              >
+                <LoadingButton loading={result.isLoading} className="bg-blue-500" type="submit" fullWidth variant="contained">
+                  Save & Continue
+                </LoadingButton>
+
+              </CardActions>
+            </Card>
+          </form>
+
+        </Fade>
+      </Modal>
+    )
+  }
 
 
   const handleChangeRowsPerPage = (
@@ -125,7 +454,7 @@ const FacilityPage = () => {
     >
       {
         error ? <ErrorData error={error} /> : isLoading ? <TentSpinner /> : (
-          <Grid container>
+          <Grid container spacing={4}>
 
             <Grid item lg={9} md={12} sm={12} xs={12}>
               <Stack spacing={1}>
@@ -163,6 +492,8 @@ const FacilityPage = () => {
                           color="primary"
                           variant="contained"
                           disableElevation
+                          className="bg-blue-500"
+                          onClick={() => setOpen(true)}
                         >
                           Add Facility
                         </Button>
@@ -252,8 +583,8 @@ const FacilityPage = () => {
             <Grid item lg={3} md={12} sm={12} xs={12}>
               {
                 cardDataError ? <ErrorData error={cardDataError} /> : isLoadingCardData ? <TentSpinner /> : (
-                  cardData.data.map((data) =>{
-                    return <AtmCard {...data}/>
+                  cardData.data.map((data) => {
+                    return <AtmCard {...data} />
 
                   })
                 )
@@ -262,6 +593,7 @@ const FacilityPage = () => {
           </Grid>
         )
       }
+      {AddFacilityModal()}
 
     </DashboardLayout>
   );

@@ -127,7 +127,7 @@ const Dashboard = () => {
     <DashboardLayout title={<Typography variant="h4">Overview</Typography>} action={<SearchButton onclick={clickSearchButton} text="Live/Default" />}>
       {loading ? <TentSpinner /> : cardError ? <ErrorData error={cardError} /> : (
         <Stack height="100%" rowGap={2} alignItems="stretch">
-          <FixedHeightGrid height={50} justifyContent="stretch" container spacing={3}>
+          <Grid justifyContent="stretch" container spacing={3}>
             <Grid lg={4} md={12} sm={12} xs={12} item>
               <TentCard rounded>
                 <CardHeader title="User Status" />
@@ -159,9 +159,9 @@ const Dashboard = () => {
             <Grid lg={8} md={12} sm={12} xs={12} item>
               <TentCard rounded>{VerticalBar()}</TentCard>
             </Grid>
-          </FixedHeightGrid>
+          </Grid>
 
-          <FixedHeightGrid height={50} justifyContent="stretch" container spacing={3}>
+          <Grid  justifyContent="stretch" container spacing={3}>
             <Grid lg={4} md={12} sm={12} xs={12} item>
               <TentCard rounded>
                 <CardHeader title="Order Status" />
@@ -246,7 +246,7 @@ const Dashboard = () => {
                 </CardContent>
               </TentCard>
             </Grid>
-          </FixedHeightGrid>
+          </Grid>
         </Stack>)}
     </DashboardLayout>
   );

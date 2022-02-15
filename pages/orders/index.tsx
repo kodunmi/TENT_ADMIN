@@ -6,14 +6,15 @@ import { WithAuth } from '../../HOC';
 import { DashboardLayout } from '../../layout';
 import { useGetOrdersQuery } from '../../services';
 import styled from "styled-components";
+import { ErrorData, TentSpinner } from '../../components';
 
 
 interface StatusProps {
     background: string
-  }
+}
 
 const Status = styled.div`
-background: ${(props: StatusProps)=> props.background};
+background: ${(props: StatusProps) => props.background};
 border-radius: 154.324px;
 padding: 5px 10px;
 display: inline-block;
@@ -25,7 +26,7 @@ color: #fff;
 const OrderPage = () => {
 
     const [page, setPage] = useState(1);
-    const { data, isLoading, error } = useGetOrdersQuery({ pageNumber: page }, {
+    const { data, isLoading, error, isFetching } = useGetOrdersQuery({ pageNumber: page }, {
         refetchOnMountOrArgChange: true,
     });
 
@@ -38,7 +39,7 @@ const OrderPage = () => {
                 fullName: order.user.fullName,
                 phoneNumber: order.user.phoneNumber,
                 userID: order.user.tentUserId,
-                landEstimatedPrice: Math.round( order.landEstimatedPrice),
+                landEstimatedPrice: Math.round(order.landEstimatedPrice),
                 building: order.building,
                 status: order.status,
                 orderID: order._id,
@@ -50,9 +51,10 @@ const OrderPage = () => {
     console.log(newOrder);
 
     const columns: MUIDataTableColumnDef[] = [
-        { name: "createdAt", label: "Date Created", options: { 
-            filter: true,
-             sort: true ,
+        {
+            name: "createdAt", label: "Date Created", options: {
+                filter: true,
+                sort: true,
                 customBodyRender: (value, tableMeta, updateValue) => {
                     return (
                         <Typography variant="body2">
@@ -61,13 +63,13 @@ const OrderPage = () => {
                     )
                 }
             }
-         },
+        },
         { name: "fullName", label: "Full Name" },
         { name: "phoneNumber", label: "Phone Number" },
         { name: "userID", label: "User ID" },
         { name: "landEstimatedPrice", label: "Land Estimated Price" },
-        { 
-            name: "building", 
+        {
+            name: "building",
             label: "Building",
 
             options: {
@@ -77,44 +79,44 @@ const OrderPage = () => {
                     buildingEstimatedPrice: number
                 }, tableMeta, updateValue) => {
 
-                    if(value){
+                    if (value) {
                         return (
                             <div>
                                 <Typography variant="body2">
-                                {`${value.numberOfRoom} Bedroom`}
+                                    {`${value.numberOfRoom} Bedroom`}
                                 </Typography>
                                 <Typography variant="body2">
-                                {`${value.buildingType}`}
+                                    {`${value.buildingType}`}
                                 </Typography>
                             </div>
                         )
-                    }else{
+                    } else {
                         return (
                             <Typography variant="body2">
                                 No building
                             </Typography>
                         )
                     }
-                    
+
                 }
             }
-         },
+        },
         {
             name: "status",
             label: "Status",
             options: {
-                customBodyRender: (value:string, tableMeta, updateValue) => {
+                customBodyRender: (value: string, tableMeta, updateValue) => {
                     return (
                         <div>
                             {
-                            value.toLocaleLowerCase() == "terminate" && <Status background="red" >FAILED</Status>
+                                value.toLocaleLowerCase() == "terminate" && <Status background="red" >FAILED</Status>
                             }
                             {
-                            value.toLocaleLowerCase() === "completed" && <Status background="#04C300" >COMPLETED</Status>
+                                value.toLocaleLowerCase() === "completed" && <Status background="#04C300" >COMPLETED</Status>
                             }
                             {
-                            value.toLocaleLowerCase() === "processing" && <Status background="#00A3FF">PROCESSING</Status>
-                            }   
+                                value.toLocaleLowerCase() === "processing" && <Status background="#00A3FF">PROCESSING</Status>
+                            }
                         </div>
                     )
                 }
@@ -139,11 +141,13 @@ const OrderPage = () => {
         rowsPerPage: 20,
         serverSide: false,
         count: data?.data.orderCount,
-        page,
+        page: page - 1,
         onTableChange: (action, tableState) => {
             switch (action) {
                 case "changePage":
-                    setPage(tableState.page);
+                    console.log(tableState.page);
+                    
+                    setPage(tableState.page +  1);
                     break;
                 default:
                     break;
@@ -159,22 +163,28 @@ const OrderPage = () => {
     };
 
     return <DashboardLayout title={<Typography variant="h4">Orders</Typography>}>
-        <MUIDataTable
-            title={
-                <Typography variant="h6">
-                    Order Status
-                    {isLoading && (
-                        <CircularProgress
-                            size={24}
-                            style={{ marginLeft: 15, position: "relative", top: 4 }}
-                        />
-                    )}
-                </Typography>
-            }
-            data={newOrder}
-            columns={columns}
-            options={options}
-        />
+
+        {
+            error ? <ErrorData error={error} /> : isLoading ? <TentSpinner /> : (
+                <MUIDataTable
+                    title={
+                        <Typography variant="h6">
+                            Order Status
+                            {isFetching && (
+                                <CircularProgress
+                                    size={24}
+                                    style={{ marginLeft: 15, position: "relative", top: 4 }}
+                                />
+                            )}
+                        </Typography>
+                    }
+                    data={newOrder}
+                    columns={columns}
+                    options={options}
+                />
+            )
+        }
+
     </DashboardLayout>;
 };
 

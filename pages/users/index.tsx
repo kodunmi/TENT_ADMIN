@@ -68,7 +68,7 @@ const Users = () => {
 
   const [addUser, { isLoading: addingUser }] = useAddUserMutation();
 
-  const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery({ pageNumber: page }, {
+  const { data, isLoading, isFetching, error, isError, refetch } = useGetUsersQuery({ pageNumber: page }, {
     refetchOnMountOrArgChange: true,
     refetchOnReconnect: true,
   });
@@ -203,7 +203,7 @@ const Users = () => {
     rowsPerPage: 20,
     serverSide: false,
     count: data?.data.userCount,
-    page,
+    page: page - 1,
     onTableChange: (action, tableState) => {
       switch (action) {
         case "changePage":
@@ -228,7 +228,7 @@ const Users = () => {
 
   let newData = [];
 
-  if (!isLoading) {
+  if (!isLoading && !isError && data) {
     newData = data.data.users.map((user) => {
       return {
         id: user._id,

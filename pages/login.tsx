@@ -130,7 +130,7 @@ const Login = () => {
                     </Typography>
                     </Link> */}
 
-                    <LoadingButton fullWidth size="large" color="neutral" variant="contained"
+                    <LoadingButton className='bg-black' fullWidth size="large" color="neutral" variant="contained"
                         loading={isLoading}
                         onClick={async () => {
                             if (formRef.current.reportValidity()) {

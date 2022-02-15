@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 import { SerializedError } from '@reduxjs/toolkit'
 import { FetchBaseQueryError } from '@reduxjs/toolkit/dist/query'
 import React from 'react'
@@ -17,6 +17,22 @@ export const ErrorData = ({error}:{error:FetchBaseQueryError | SerializedError }
     let e = error as FetchBaseQueryError
     let data = e.data as {error:{message:string}}
     console.log(error);
+
+    if(e.status == 401){
+        return (
+            <Container>
+                 <img src="/images/undraw_cancel_u-1-it.svg" alt="" height="50%" width="50%" />
+                <Typography variant="h5" mt={3}>
+                   Please login again to continue
+                </Typography>
+
+                {/* login button */}
+                <Button onClick={() => location.href='/login'} variant='outlined' color='neutral' sx={{ mt:'20px' }}>
+                    Go to login
+                </Button>
+            </Container>
+        )
+    }
     return (
         <Container>
             <img src="/images/undraw_cancel_u-1-it.svg" alt="" height="50%" width="50%" />

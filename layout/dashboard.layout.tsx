@@ -24,13 +24,14 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
 }>(({ theme, open, background, width, lg, xs }) => ({
   flexGrow: 1,
   padding: theme.spacing(lg? 3 : 1),
-  height: lg ? "calc(100vh - 120px)" : xs ? "calc(100vh - 240)" : "calc(100vh - 180px)",
-  // height: "100vh",
+  // height: lg ? "calc(100vh - 120px)" : xs ? "calc(100vh - 240)" : "calc(100vh - 180px)",
+  height: "auto",
   overflow:"scroll",
   position: "fixed",
   bottom: 0,
   right: 0,
   top: xs ? '140px' : '120px',
+  paddingBottom: '20px',
   
   backgroundColor: background == "deem"  ?  theme.palette.background.paper : theme.palette.action.hover,
   transition: theme.transitions.create("margin", {

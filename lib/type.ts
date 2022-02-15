@@ -67,9 +67,10 @@ export interface UserDataType {
 }
 
 export interface BuildingType {
-    _id: string
-    buildingType: string
-    numberOfRoom: number
+    _id?: string
+    buildingType?: string
+    numberOfRoom?: number
+    price?: number
 }
 
 export interface FacilityType {

@@ -3,7 +3,7 @@ import moment from 'moment';
 import MUIDataTable, { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables';
 import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { FixedHeightGrid, TentCard } from '../../components';
+import { ErrorData, FixedHeightGrid, TentCard, TentSpinner } from '../../components';
 import { DashboardLayout } from '../../layout';
 import { useGetPaymentGraphMutation, useGetPaymentSummaryQuery, useGetTransactionsQuery } from '../../services';
 import { ListItem } from '../dashboard';
@@ -111,11 +111,11 @@ const Transactions = () => {
         rowsPerPage: 20,
         serverSide: false,
         count: data?.data.paymentCount,
-        page,
+        page: page - 1,
         onTableChange: (action, tableState) => {
             switch (action) {
                 case "changePage":
-                    setPage(tableState.page);
+                    setPage(tableState.page + 1);
                     break;
                 default:
                     break;
@@ -146,70 +146,75 @@ const Transactions = () => {
 
 
     return <DashboardLayout title={<h1>Transaction dashboard</h1>}>
-        <Stack height="100%" rowGap={{ md: 4, lg: 4, sm: 4, xs: 4 }} alignItems="stretch">
-            <FixedHeightGrid height={50} justifyContent="stretch" container spacing={3}>
-                <Grid lg={4} md={12} sm={12} xs={12} item>
-                    {
-                        isError2 ? <h3>Error loading data</h3> : isLoading2 ? <CircularProgress /> : (
-                            <TentCard rounded>
-                                <CardHeader title="User Status" />
-                                <CardContent
-                                    sx={{
-                                        justifyContent: "flex-end",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        height: "80%",
-                                    }}
-                                >
-                                    <Stack spacing={2}>
-                                        <ListItem>
-                                            <Typography variant="body1">Total Payment</Typography>
-                                            <Typography variant="h6">{data2.data.totalPayments}</Typography>
-                                        </ListItem>
-                                        <ListItem>
-                                            <Typography variant="body1">Avg. Sales</Typography>
-                                            <Typography variant="h6">{data2.data.avgSales}</Typography>
-                                        </ListItem>
-                                        <ListItem>
-                                            <Typography variant="body1">Total Sales</Typography>
-                                            <Typography variant="h6">{data2.data.totalSales}</Typography>
-                                        </ListItem>
-                                    </Stack>
-                                </CardContent>
-                            </TentCard>
-                        )
-                    }
-
-                </Grid>
-                <Grid lg={8} md={12} sm={12} xs={12} item>
-                    <TentCard rounded>{VerticalBar()}</TentCard>
-                </Grid>
-            </FixedHeightGrid>
-
-            <FixedHeightGrid height={50} justifyContent="stretch" container spacing={3}>
-                <Grid lg={12} md={12} sm={12} xs={12} item sx={{ mb: "50px" }}>
-                    <TentCard rounded>
-
-                        <MUIDataTable
-                            title={
-                                <Typography variant="h6">
-                                    {isFetching && (
-                                        <CircularProgress
-                                            size={24}
-                                            style={{ marginLeft: 15, position: "relative", top: 4 }}
-                                        />
-                                    )}
-                                </Typography>
-                            }
-                            data={newData}
-                            columns={columns}
-                            options={options}
-                        />
-                    </TentCard>
-                </Grid>
-            </FixedHeightGrid>
-
-        </Stack>
+        {
+             error ? <ErrorData error={error} /> : isLoading ? <TentSpinner /> : (
+                <Stack height="100%" rowGap={{ md: 4, lg: 4, sm: 4, xs: 4 }} alignItems="stretch">
+                <FixedHeightGrid height={50} justifyContent="stretch" container spacing={3}>
+                    <Grid lg={4} md={12} sm={12} xs={12} item>
+                        {
+                            isError2 ? <h3>Error loading data</h3> : isLoading2 ? <CircularProgress /> : (
+                                <TentCard rounded>
+                                    <CardHeader title="User Status" />
+                                    <CardContent
+                                        sx={{
+                                            justifyContent: "flex-end",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            height: "80%",
+                                        }}
+                                    >
+                                        <Stack spacing={2}>
+                                            <ListItem>
+                                                <Typography variant="body1">Total Payment</Typography>
+                                                <Typography variant="h6">{data2.data.totalPayments}</Typography>
+                                            </ListItem>
+                                            <ListItem>
+                                                <Typography variant="body1">Avg. Sales</Typography>
+                                                <Typography variant="h6">{data2.data.avgSales}</Typography>
+                                            </ListItem>
+                                            <ListItem>
+                                                <Typography variant="body1">Total Sales</Typography>
+                                                <Typography variant="h6">{data2.data.totalSales}</Typography>
+                                            </ListItem>
+                                        </Stack>
+                                    </CardContent>
+                                </TentCard>
+                            )
+                        }
+    
+                    </Grid>
+                    <Grid lg={8} md={12} sm={12} xs={12} item>
+                        <TentCard rounded>{VerticalBar()}</TentCard>
+                    </Grid>
+                </FixedHeightGrid>
+    
+                <FixedHeightGrid height={50} justifyContent="stretch" container spacing={3}>
+                    <Grid lg={12} md={12} sm={12} xs={12} item sx={{ mb: "50px" }}>
+                        <TentCard rounded>
+    
+                            <MUIDataTable
+                                title={
+                                    <Typography variant="h6">
+                                        {isFetching && (
+                                            <CircularProgress
+                                                size={24}
+                                                style={{ marginLeft: 15, position: "relative", top: 4 }}
+                                            />
+                                        )}
+                                    </Typography>
+                                }
+                                data={newData}
+                                columns={columns}
+                                options={options}
+                            />
+                        </TentCard>
+                    </Grid>
+                </FixedHeightGrid>
+    
+            </Stack>
+             )
+        }
+       
     </DashboardLayout>;
 };
 

@@ -1,103 +1,53 @@
-import { CardHeader, Grid, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Button, IconButton, TablePagination, TextField, InputAdornment } from '@mui/material'
+import { CardHeader, Grid, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Button, IconButton, TablePagination, TextField, InputAdornment, CircularProgress } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect } from 'react'
 import { DataCountCard, ErrorData, FixedHeightGrid, SearchButton, TentCard, TentSpinner } from '../../components'
 import { WithAuth } from '../../HOC'
 import { useNextQueryParam } from '../../hooks'
 import { DashboardLayout } from '../../layout'
-import { useGetFacilityQuery } from '../../services'
+import { useGetFacilityQuery, useLazyGetFacilityQuery, SingleFacilityResponse } from '../../services'
 import Delete from "remixicon-react/DeleteBinLineIcon";
 import Edit from "remixicon-react/PencilLineIcon";
 import View from 'remixicon-react/EyeLineIcon'
 import { OrderType } from '../../lib'
 import SearchIcon from '@mui/icons-material/Search';
+import { GetServerSidePropsContext } from 'next'
+import { ParsedUrlQuery } from 'querystring'
+import MUIDataTable, { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables'
+import moment from 'moment'
+import styled from "styled-components";
+
 const clickSearchButton = () => {
     console.log('hi');
 
 }
 
-interface Column {
-    id:
-    | "date"
-    | "name"
-    | "phone"
-    | "email"
-    | "userID"
-    | "status"
-    | "creator"
-    | "delete"
-    | "edit"
-    | "view";
-    label: string;
-    minWidth?: number;
-    maxWidth?: number;
-    align?: "right" | "center" | "left";
-    format?: (value: number) => string;
+interface StatusProps {
+    background: string
 }
 
-const columns: readonly Column[] = [
-    {
-        id: "date",
-        label: "DATE CREATED",
-        minWidth: 170,
-        format: (value: number) => value.toLocaleString("en-US"),
-    },
-    { id: "name", label: "FULLNAME", minWidth: 200 },
-    {
-        id: "phone",
-        label: "PHONE NO",
-        minWidth: 100,
-        align: "right",
-    },
-    {
-        id: "email",
-        label: "EMAIL",
-        minWidth: 50,
-        align: "left",
-    },
-    {
-        id: "userID",
-        label: "USER ID",
-        minWidth: 70,
-        align: "center",
-    },
-    {
-        id: "status",
-        label: "STATUS",
-        minWidth: 70,
-        align: "center",
-    },
-    {
-        id: "creator",
-        label: "CREATOR",
-        minWidth: 70,
-        align: "center",
-    },
-    {
-        id: "view",
-        label: "View",
-        align: "center",
-    },
-    {
-        id: "delete",
-        label: "Delete",
-        align: "center",
-    },
-    {
-        id: "edit",
-        label: "Edit",
-        align: "center",
-    },
-];
-const Facility = () => {
+const Status = styled.div`
+background: ${(props: StatusProps) => props.background};
+border-radius: 154.324px;
+padding: 5px 10px;
+display: inline-block;
+height: fit-content;
+font-size: 14px;
+color: #fff;
+`
+const Facility = ({ params }: { params: ParsedUrlQuery }) => {
     const router = useRouter()
     let id: string | string[] = router.query.id;
-    const [page, setPage] = React.useState(0);
+    const [page, setPage] = React.useState(1);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
     const handleChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
     };
+
+    const [formState, setFormState] = React.useState<SingleFacilityResponse>()
+    const [trigger, result] = useLazyGetFacilityQuery({
+        refetchOnReconnect: true,
+    })
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement>
@@ -106,21 +56,117 @@ const Facility = () => {
         setPage(0);
     };
 
-    const queryKey = 'id';
-    const queryValue = router.query[queryKey] || router.asPath.match(new RegExp(`[&?]${queryKey}=(.*)(&|$)`))
-    console.log(queryValue, id);
-
-    const id2 = useNextQueryParam(queryKey);
 
 
-    const { refetch, isLoading, error, data } = useGetFacilityQuery({ id: '619156f7f8fa7d00164e43c5', estateStatusPageNumber: 1 }, {
 
-    });
+
 
     useEffect(() => {
-        refetch();
-        console.log(data, isLoading, error);
-    }, [id2]);
+        trigger({ id: params.id as string, estateStatusPageNumber: page })
+    }, [params.id, page]);
+
+
+    useEffect(() => {
+        if (result.isSuccess && result.isLoading === false) {
+            setFormState(result.data.data)
+        }
+    }, [result])
+
+    const options: MUIDataTableOptions = {
+        search: true,
+        download: true,
+        print: true,
+        viewColumns: true,
+        filter: true,
+        filterType: "dropdown",
+        responsive: "standard",
+        tableBodyHeight: "100%",
+        rowsPerPage: 20,
+        serverSide: false,
+        count: formState ?  formState.estateStatus.statusCount : 0,
+        page: page - 1,
+        onTableChange: (action, tableState) => {
+            switch (action) {
+                case "changePage":
+                    console.log(tableState.page);
+                    
+                    setPage(tableState.page +  1);
+                    break;
+                default:
+                    break;
+            }
+        },
+        onRowsDelete: (rowsDeleted) => {
+            console.log(rowsDeleted);
+        },
+
+
+
+
+    };
+
+    const columns: MUIDataTableColumnDef[] = [
+        { name: "building", label: "Added building" },
+        {
+            name: "dateCreated", label: "Date Created", options: {
+                filter: true,
+                sort: true,
+                customBodyRender: (value, tableMeta, updateValue) => {
+                    return (
+                        <Typography variant="body2">
+                            {moment(value).format('MMMM Do YYYY')}
+                        </Typography>
+                    )
+                }
+            }
+        },
+        
+        { name: "fullName", label: "Full Name" },
+        { name: "orderId", label: "Order ID" },
+        { name: "orderSize", label: "Order Size" },
+        { name: "phoneNumber", label: "Phone Number" },    
+        {
+            name: "status",
+            label: "Status",
+            options: {
+                customBodyRender: (value: string, tableMeta, updateValue) => {
+                    return (
+                        <div>
+                            {
+                                value.toLocaleLowerCase() == "terminate" && <Status background="red" >FAILED</Status>
+                            }
+                            {
+                                value.toLocaleLowerCase() === "completed" && <Status background="#04C300" >COMPLETED</Status>
+                            }
+                            {
+                                value.toLocaleLowerCase() === "processing" && <Status background="#00A3FF">PROCESSING</Status>
+                            }
+                        </div>
+                    )
+                }
+            }
+        },
+        { name: "userId", label: "User ID" },
+
+    ]
+
+    let newStatus = []
+
+    if (formState && !result.isLoading) {
+        newStatus = formState.estateStatus.status.map(order => {
+            return {
+                building: order.building ? 'added building' : 'no building',
+                dateCreated: order.dateCreated,
+                fullName: order.fullName,
+                orderId: order.orderId,
+                orderSize: order.orderSize,
+                phoneNumber: order.phoneNumber,
+                status: order.status,
+                userId: order.userId,
+            }
+        })
+    }
+
 
 
 
@@ -129,8 +175,9 @@ const Facility = () => {
             title={<Typography variant="h4">Overview</Typography>}
             action={<SearchButton onclick={clickSearchButton} text="Live/Default" />}
         >
-            {error ? <ErrorData error={error} /> : isLoading ? <TentSpinner /> : (
+            {result.isError ? <ErrorData error={result.error} /> : result.isLoading ? <TentSpinner /> : !formState ? <p>no data</p> : (
                 <Stack spacing={2} sx={{ flexGrow: 1 }}>
+
                     <FixedHeightGrid
                         height={20}
                         justifyContent="stretch"
@@ -139,19 +186,19 @@ const Facility = () => {
                     >
                         <Grid lg={4} md={4} sm={6} xs={12} item>
                             <DataCountCard color="#EACA1F">
-                                <Typography variant="h6">{data.data.summary.totalLandSize}</Typography>
+                                <Typography variant="h6">{formState.summary.totalLandSize}</Typography>
                                 <Typography variant="body2">Total Land Size</Typography>
                             </DataCountCard>
                         </Grid>
                         <Grid lg={4} md={4} sm={6} xs={12} item>
                             <DataCountCard color="#EACA1F">
-                                <Typography variant="h6">{data.data.summary.totalBuildingSold}</Typography>
+                                <Typography variant="h6">{formState.summary.totalBuildingSold}</Typography>
                                 <Typography variant="body2">Total Building Sold</Typography>
                             </DataCountCard>
                         </Grid>
                         <Grid lg={4} md={4} sm={6} xs={12} item>
                             <DataCountCard color="#EACA1F">
-                                <Typography variant="h6">{data.data.summary.totalUnitSold}</Typography>
+                                <Typography variant="h6">{formState.summary.totalUnitSold}</Typography>
                                 <Typography variant="body2">Total Unit Sold</Typography>
                             </DataCountCard>
                         </Grid>
@@ -162,15 +209,15 @@ const Facility = () => {
                                 action={
                                     <Stack>
                                         <TextField
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <SearchIcon />
-                                                </InputAdornment>
-                                            )
-                                            
-                                        }}
-                                        size="small"
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <SearchIcon />
+                                                    </InputAdornment>
+                                                )
+
+                                            }}
+                                            size="small"
                                             placeholder='Search' type='search' />
                                     </Stack>
                                 }
@@ -178,86 +225,21 @@ const Facility = () => {
                             />
                             <Grid>
                                 <Paper sx={{ width: "100%", overflow: "hidden" }}>
-                                    <TableContainer sx={{ maxHeight: 440 }}>
-                                        <Table stickyHeader aria-label="sticky table">
-                                            <TableHead>
-                                                <TableRow>
-                                                    {columns.map((column) => (
-                                                        <TableCell
-                                                            key={column.id}
-                                                            align={column.align}
-                                                            style={{ minWidth: column.minWidth }}
-                                                        >
-                                                            {column.label}
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {data.data.estateStatus.status
-                                                    .slice(
-                                                        page * rowsPerPage,
-                                                        page * rowsPerPage + rowsPerPage
-                                                    )
-                                                    .map((row: OrderType) => {
-                                                        return (
-                                                            <TableRow
-                                                                hover
-                                                                role="checkbox"
-                                                                tabIndex={-1}
-                                                                key={row._id}
-                                                            >
-                                                                {columns.map((column: Column) => {
-                                                                    const value = row[column.id];
-                                                                    return (
-                                                                        <TableCell
-                                                                            key={column.id}
-                                                                            align={column.align}
-                                                                        >
-                                                                            {column.id === "status" ? (
-                                                                                <Button
-                                                                                    sx={{
-                                                                                        width: "102.97px",
-                                                                                        boxShadow: "none",
-                                                                                        borderRadius: "6px",
-                                                                                        fontSize: "13px",
-                                                                                        padding: "5px 10px",
-                                                                                        backgroundColor:
-                                                                                            row.status === 'complete' ? "#3BEA1F" : row.status === 'processing' ? '#26527c' : "#EACA1F",
-                                                                                    }}
-                                                                                    variant="contained"
-                                                                                    size="small"
-                                                                                >
-                                                                                    {value}
-                                                                                </Button>
-                                                                            ) : column.id === "delete" ? (
-                                                                                <IconButton>
-                                                                                    <Delete />
-                                                                                </IconButton>
-                                                                            ) : column.id === "edit" ? (
-                                                                                <IconButton>
-                                                                                    <Edit />
-                                                                                </IconButton>
-                                                                            ) : (
-                                                                                value
-                                                                            )}
-                                                                        </TableCell>
-                                                                    );
-                                                                })}
-                                                            </TableRow>
-                                                        );
-                                                    })}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                    <TablePagination
-                                        rowsPerPageOptions={[10, 25, 100]}
-                                        component="div"
-                                        count={data.data.estateStatus.status.length}
-                                        rowsPerPage={rowsPerPage}
-                                        page={page}
-                                        onPageChange={handleChangePage}
-                                        onRowsPerPageChange={handleChangeRowsPerPage}
+                                    <MUIDataTable
+                                        title={
+                                            <Typography variant="h6">
+                                                Order Status
+                                                {result.isError && (
+                                                    <CircularProgress
+                                                        size={24}
+                                                        style={{ marginLeft: 15, position: "relative", top: 4 }}
+                                                    />
+                                                )}
+                                            </Typography>
+                                        }
+                                        data={newStatus}
+                                        columns={columns}
+                                        options={options}
                                     />
                                 </Paper>
                             </Grid>
@@ -270,3 +252,9 @@ const Facility = () => {
 }
 
 export default WithAuth(Facility)
+
+export const getServerSideProps = (context: GetServerSidePropsContext) => {
+    return {
+        props: { params: context.params }
+    };
+}
