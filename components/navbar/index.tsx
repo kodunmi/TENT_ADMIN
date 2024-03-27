@@ -20,6 +20,7 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import { Search } from "@mui/icons-material";
 import { SearchButton } from "..";
 import { useAuth } from "../../hooks";
+import { useRouter } from "next/router";
 
 export function NavBar({ open, drawerWidth, action, title }) {
   const isDarkModeEnabled = useMediaQuery("(prefers-color-scheme: dark)");
@@ -35,7 +36,7 @@ export function NavBar({ open, drawerWidth, action, title }) {
     float: !open ? "right" : "none",
   }));
 
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -82,14 +83,14 @@ export function NavBar({ open, drawerWidth, action, title }) {
     width: "100%",
   }));
 
-  const StyledToolBar  = styled(Toolbar)(({ theme }) => ({
-    padding:"0px !important"
-  }))
+  const StyledToolBar = styled(Toolbar)(({ theme }) => ({
+    padding: "0px !important",
+  }));
 
   const WidthBox = styled(Box)`
-  width: calc(100vw - ${open ? drawerWidth : width }px);
-  float: right;
-  `
+    width: calc(100vw - ${open ? drawerWidth : width}px);
+    float: right;
+  `;
 
   const menuId = "primary-search-account-menu";
   const renderMenu = (
@@ -157,7 +158,14 @@ export function NavBar({ open, drawerWidth, action, title }) {
     </Menu>
   );
 
-  return (
+  const { push } = useRouter();
+  useEffect(() => {
+    if (!user) {
+      push("/login");
+    }
+  }, [user, push]);
+
+  return user ? (
     <WidthBox>
       <AppBar
         style={{ boxShadow: "none" }}
@@ -235,5 +243,7 @@ export function NavBar({ open, drawerWidth, action, title }) {
       {renderMobileMenu}
       {renderMenu}
     </WidthBox>
+  ) : (
+    <p>Error</p>
   );
 }

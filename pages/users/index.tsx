@@ -36,20 +36,26 @@ import {
 import { DashboardLayout } from "../../layout";
 import Delete from "remixicon-react/DeleteBinLineIcon";
 import Edit from "remixicon-react/PencilLineIcon";
-import View from 'remixicon-react/EyeLineIcon'
+import View from "remixicon-react/EyeLineIcon";
 import { useRouter } from "next/router";
 import { Box } from "@mui/system";
-import { RegisterUserRequest, useAddUserMutation, useGetUserSammaryQuery, useGetUsersQuery } from "../../services";
-import MUIDataTable, { MUIDataTableColumnDef, MUIDataTableOptions } from "mui-datatables";
+import {
+  RegisterUserRequest,
+  useAddUserMutation,
+  useGetUserSammaryQuery,
+  useGetUsersQuery,
+} from "../../services";
+import MUIDataTable, {
+  MUIDataTableColumnDef,
+  MUIDataTableOptions,
+} from "mui-datatables";
 import { LoadingButton } from "@mui/lab";
-import { useSnackbar } from 'notistack'
+import { useSnackbar } from "notistack";
 import moment from "moment";
 import { statesOfNigeria, UserDataType } from "../../lib";
-
-
+import { WithAuth } from "../../HOC";
 
 const Users = () => {
-
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -64,98 +70,121 @@ const Users = () => {
   const [filterBtn, setFilterBtn] = useState(true);
   const [page, setPage] = useState(1);
   const { enqueueSnackbar } = useSnackbar();
-  const [formState, setFormState] = React.useState<UserDataType>()
+  const [formState, setFormState] = React.useState<UserDataType>();
 
   const [addUser, { isLoading: addingUser }] = useAddUserMutation();
 
-  const { data, isLoading, isFetching, error, isError, refetch } = useGetUsersQuery({ pageNumber: page }, {
+  const { data, isLoading, isFetching, error, isError, refetch } =
+    useGetUsersQuery(
+      { pageNumber: page },
+      {
+        refetchOnMountOrArgChange: true,
+        refetchOnReconnect: true,
+      }
+    );
+
+  const {
+    data: summaryData,
+    isLoading: loadingSummary,
+    error: summaryError,
+  } = useGetUserSammaryQuery("", {
     refetchOnMountOrArgChange: true,
     refetchOnReconnect: true,
   });
 
-  const { data: summaryData, isLoading: loadingSummary, error: summaryError } = useGetUserSammaryQuery('', {
-    refetchOnMountOrArgChange: true,
-    refetchOnReconnect: true,
-  })
-
   useEffect(() => {
-    refetch()
+    refetch();
   }, [page]);
-  
-
-
-
 
   const handleChange = ({
     target: { name, value },
   }: React.ChangeEvent<HTMLInputElement>) => {
-
-    const split = name.split('.')
+    const split = name.split(".");
     if (split.length > 1) {
       setFormState((prev) => ({
-        ...prev, [split[0]]: {
+        ...prev,
+        [split[0]]: {
           ...prev[split[0]],
-          [split[1]]: value
-        }
-      }))
+          [split[1]]: value,
+        },
+      }));
     } else {
-      setFormState((prev) => ({ ...prev, [name]: value }))
+      setFormState((prev) => ({ ...prev, [name]: value }));
     }
-  }
+  };
 
   const handleRegisterNewUser = async (e) => {
-
     e.preventDefault();
     try {
       const { data } = await addUser(formState).unwrap();
 
-      router.push('/users/[id]', `/users/${data._id}`);
-
+      router.push("/users/[id]", `/users/${data._id}`);
     } catch (err) {
-      enqueueSnackbar(err.data ? err.data.message : "We could not process your request", {
-        variant: 'warning'
-      });
+      enqueueSnackbar(
+        err.data ? err.data.message : "We could not process your request",
+        {
+          variant: "warning",
+        }
+      );
     }
-
   };
-
 
   const columns: MUIDataTableColumnDef[] = [
     { name: "id", label: "ID", options: { display: "false" } },
     { name: "date", label: "Date" },
-    { name: "name", label: "Name", options: { filterOptions: { fullWidth: true } } },
-    { name: "phone", label: "Phone", options: { filterOptions: { fullWidth: true } } },
-    { name: "email", label: "Email", options: { filterOptions: { fullWidth: true } } },
-    { name: "userID", label: "User ID", options: { filterOptions: { fullWidth: true } }
+    {
+      name: "name",
+      label: "Name",
+      options: { filterOptions: { fullWidth: true } },
     },
-    { name: "status", label: "Status", 
-    options: {
-      filterOptions: { 
-        fullWidth: true 
-       },
-       customBodyRender: (value: boolean, tableMeta, updateValue) => {
-         return (
-           <Button
-               sx={{
-                 width: "102.97px",
-                 boxShadow: "none",
-                 borderRadius: "6px",
-                 fontSize: "13px",
-                 padding: "5px 10px",
-                 backgroundColor: "#EACA1F",
-               }}
-               variant="contained"
-               size="small"
-               className={value ? "bg-green-300" : "bg-yellow-500"}
-             >
-              {value  ? "VERIFIED" : "UNVERIFIED"}
-             </Button>
-         )
-       }
-     
-     } 
-     },
-    { name: "creator", label: "Creator", options: { filterOptions: { fullWidth: true } } },
+    {
+      name: "phone",
+      label: "Phone",
+      options: { filterOptions: { fullWidth: true } },
+    },
+    {
+      name: "email",
+      label: "Email",
+      options: { filterOptions: { fullWidth: true } },
+    },
+    {
+      name: "userID",
+      label: "User ID",
+      options: { filterOptions: { fullWidth: true } },
+    },
+    {
+      name: "status",
+      label: "Status",
+      options: {
+        filterOptions: {
+          fullWidth: true,
+        },
+        customBodyRender: (value: boolean, tableMeta, updateValue) => {
+          return (
+            <Button
+              sx={{
+                width: "102.97px",
+                boxShadow: "none",
+                borderRadius: "6px",
+                fontSize: "13px",
+                padding: "5px 10px",
+                backgroundColor: "#EACA1F",
+              }}
+              variant="contained"
+              size="small"
+              className={value ? "bg-green-300" : "bg-yellow-500"}
+            >
+              {value ? "VERIFIED" : "UNVERIFIED"}
+            </Button>
+          );
+        },
+      },
+    },
+    {
+      name: "creator",
+      label: "Creator",
+      options: { filterOptions: { fullWidth: true } },
+    },
     {
       name: "Delete",
       options: {
@@ -163,15 +192,9 @@ const Users = () => {
         sort: false,
         empty: true,
         customBodyRender: (value, tableMeta, updateValue) => {
-          return (
-            <button onClick={() => {
-
-            }}>
-              Delete
-            </button>
-          );
-        }
-      }
+          return <button onClick={() => {}}>Delete</button>;
+        },
+      },
     },
     {
       name: "Edit",
@@ -181,12 +204,16 @@ const Users = () => {
         empty: true,
         customBodyRender: (value, tableMeta, updateValue) => {
           return (
-            <button onClick={() => window.alert(`Clicked "Edit" for row ${tableMeta.rowIndex}`)}>
+            <button
+              onClick={() =>
+                window.alert(`Clicked "Edit" for row ${tableMeta.rowIndex}`)
+              }
+            >
               View
             </button>
           );
-        }
-      }
+        },
+      },
     },
   ];
 
@@ -221,9 +248,6 @@ const Users = () => {
 
       router.push(`/users/${rowData[0]}`);
     },
-
-
-
   };
 
   let newData = [];
@@ -239,13 +263,9 @@ const Users = () => {
         userID: user.tentUserId,
         status: user.accountVerified,
         creator: user.creator,
-
-      }
-    })
+      };
+    });
   }
-
-
-
 
   const style = {
     position: "absolute" as "absolute",
@@ -423,7 +443,7 @@ const Users = () => {
                           label="Gender"
                           fullWidth
                         >
-                          <MenuItem >Select gender</MenuItem>
+                          <MenuItem>Select gender</MenuItem>
                           <MenuItem value="female">Female</MenuItem>
                           <MenuItem value="male">Male</MenuItem>
                         </TentTextField>{" "}
@@ -478,10 +498,11 @@ const Users = () => {
                       <MenuItem value="">
                         <em>Select state</em>
                       </MenuItem>
-                      {
-                        statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
-                      }
-
+                      {statesOfNigeria.map((state) => (
+                        <MenuItem key={`b-${state}`} value={state}>
+                          {state}
+                        </MenuItem>
+                      ))}
                     </TentTextField>{" "}
                     <Stack direction="row" spacing={2}>
                       <Grid item lg={7} sm={7} md={7} xs={7}>
@@ -533,10 +554,11 @@ const Users = () => {
                       <MenuItem value="">
                         <em>Select state</em>
                       </MenuItem>
-                      {
-                        statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
-                      }
-
+                      {statesOfNigeria.map((state) => (
+                        <MenuItem key={`b-${state}`} value={state}>
+                          {state}
+                        </MenuItem>
+                      ))}
                     </TentTextField>{" "}
                     <TentTextField
                       required
@@ -556,7 +578,7 @@ const Users = () => {
                         <em>Select status</em>
                       </MenuItem>
                       <MenuItem value="married">Married</MenuItem>
-                      <MenuItem value="single" >Single</MenuItem>
+                      <MenuItem value="single">Single</MenuItem>
                     </TentTextField>{" "}
                     <TentTextField
                       required
@@ -616,7 +638,6 @@ const Users = () => {
                           fullWidth
                         />
                       </Grid>
-
                     </Stack>
                     <Stack>
                       <TentTextField
@@ -636,10 +657,11 @@ const Users = () => {
                         <MenuItem value={undefined}>
                           <em>Select state</em>
                         </MenuItem>
-                        {
-                          statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
-                        }
-
+                        {statesOfNigeria.map((state) => (
+                          <MenuItem key={`b-${state}`} value={state}>
+                            {state}
+                          </MenuItem>
+                        ))}
                       </TentTextField>{" "}
                     </Stack>
                   </Stack>
@@ -707,10 +729,11 @@ const Users = () => {
                           <MenuItem value={undefined}>
                             <em>Select state</em>
                           </MenuItem>
-                          {
-                            statesOfNigeria.map(state => <MenuItem key={`b-${state}`} value={state}>{state}</MenuItem>)
-                          }
-
+                          {statesOfNigeria.map((state) => (
+                            <MenuItem key={`b-${state}`} value={state}>
+                              {state}
+                            </MenuItem>
+                          ))}
                         </TentTextField>{" "}
                       </Grid>
                     </Stack>
@@ -752,111 +775,132 @@ const Users = () => {
                 padding: "32px 50px",
               }}
             >
-              <LoadingButton className="bg-blue-500" type="submit" loading={addingUser} fullWidth variant="contained">
+              <LoadingButton
+                className="bg-blue-500"
+                type="submit"
+                loading={addingUser}
+                fullWidth
+                variant="contained"
+              >
                 Save & Continue
               </LoadingButton>
-
             </CardActions>
           </Card>
         </form>
-
       </Fade>
     </Modal>
   );
 
   return (
     <DashboardLayout
-      action={<SearchButton onclick={() => { }} text="Live/Default" />}
+      action={<SearchButton onclick={() => {}} text="Live/Default" />}
       title={<Typography variant="h4">Users Dashboard</Typography>}
     >
-      {
-        error ? <ErrorData error={error} /> : isLoading ? <TentSpinner /> : (
-          <Stack spacing={2} sx={{ flexGrow: 1 }}>
-            {
-              summaryError ? <h2>Error loading data</h2> : (
-                <FixedHeightGrid
-                  height={20}
-                  justifyContent="stretch"
-                  container
-                  spacing={3}
-                >
-
-                  <Grid lg={3} md={3} sm={6} xs={12} item>
-                    <DataCountCard color="#EA1FD6">
-                      <Typography variant="h6">{loadingSummary ? 'loading' : summaryData.data.totalUsers}</Typography>
-                      <Typography variant="body2">Total users</Typography>
-                    </DataCountCard>
-                  </Grid>
-                  <Grid lg={3} md={3} sm={6} xs={12} item>
-                    <DataCountCard color="#1565D8">
-                      <Typography variant="h6">{loadingSummary ? 'loading' : summaryData.data.newUsers}</Typography>
-                      <Typography variant="body2">New users</Typography>
-                    </DataCountCard>
-                  </Grid>
-                  <Grid lg={3} md={3} sm={6} xs={12} item>
-                    <DataCountCard color="#EACA1F">
-                      <Typography variant="h6">{loadingSummary ? 'loading' : summaryData.data.unverifiedUsers}</Typography>
-                      <Typography variant="body2">Unverified users</Typography>
-                    </DataCountCard>
-                  </Grid>
-                  <Grid lg={3} md={3} sm={6} xs={12} item>
-                    <DataCountCard color="#3BEA1F">
-                      <Typography variant="h6">{loadingSummary ? 'loading' : summaryData.data.verifiedUsers}</Typography>
-                      <Typography variant="body2">Verified users</Typography>
-                    </DataCountCard>
-                  </Grid>
-                </FixedHeightGrid>
-              )
-            }
-
+      {error ? (
+        <ErrorData error={error} />
+      ) : isLoading ? (
+        <TentSpinner />
+      ) : (
+        <Stack spacing={2} sx={{ flexGrow: 1 }}>
+          {summaryError ? (
+            <h2>Error loading data</h2>
+          ) : (
             <FixedHeightGrid
-              height={80}
+              height={20}
               justifyContent="stretch"
               container
               spacing={3}
-            ></FixedHeightGrid>
-            <FixedHeightGrid height={50}>
-              <TentCard>
-                <CardHeader
-                  action={
-                    <Button
-                      onClick={handleOpen}
-                      color="primary"
-                      variant="contained"
-                      disableElevation
-                      className="bg-blue-500"
-                    >
-                      Add new user
-                    </Button>
-                  }
-                  title="List of users"
-                />
-                <Grid>
-                  <MUIDataTable
-                    title={
-                      <Typography variant="h6">
-                        {isFetching && (
-                          <CircularProgress
-                            size={24}
-                            style={{ marginLeft: 15, position: "relative", top: 4 }}
-                          />
-                        )}
-                      </Typography>
-                    }
-                    data={newData}
-                    columns={columns}
-                    options={options}
-                  />
-                </Grid>
-              </TentCard>
+            >
+              <Grid lg={3} md={3} sm={6} xs={12} item>
+                <DataCountCard color="#EA1FD6">
+                  <Typography variant="h6">
+                    {loadingSummary ? "loading" : summaryData.data.totalUsers}
+                  </Typography>
+                  <Typography variant="body2">Total users</Typography>
+                </DataCountCard>
+              </Grid>
+              <Grid lg={3} md={3} sm={6} xs={12} item>
+                <DataCountCard color="#1565D8">
+                  <Typography variant="h6">
+                    {loadingSummary ? "loading" : summaryData.data.newUsers}
+                  </Typography>
+                  <Typography variant="body2">New users</Typography>
+                </DataCountCard>
+              </Grid>
+              <Grid lg={3} md={3} sm={6} xs={12} item>
+                <DataCountCard color="#EACA1F">
+                  <Typography variant="h6">
+                    {loadingSummary
+                      ? "loading"
+                      : summaryData.data.unverifiedUsers}
+                  </Typography>
+                  <Typography variant="body2">Unverified users</Typography>
+                </DataCountCard>
+              </Grid>
+              <Grid lg={3} md={3} sm={6} xs={12} item>
+                <DataCountCard color="#3BEA1F">
+                  <Typography variant="h6">
+                    {loadingSummary
+                      ? "loading"
+                      : summaryData.data.verifiedUsers}
+                  </Typography>
+                  <Typography variant="body2">Verified users</Typography>
+                </DataCountCard>
+              </Grid>
             </FixedHeightGrid>
-          </Stack>
-        )
-      }
+          )}
+
+          <FixedHeightGrid
+            height={80}
+            justifyContent="stretch"
+            container
+            spacing={3}
+          ></FixedHeightGrid>
+          <FixedHeightGrid height={50}>
+            <TentCard>
+              <CardHeader
+                action={
+                  <Button
+                    onClick={handleOpen}
+                    color="primary"
+                    variant="contained"
+                    disableElevation
+                    className="bg-blue-500"
+                  >
+                    Add new user
+                  </Button>
+                }
+                title="List of users"
+              />
+              <Grid>
+                <MUIDataTable
+                  title={
+                    <Typography variant="h6">
+                      {isFetching && (
+                        <CircularProgress
+                          size={24}
+                          style={{
+                            marginLeft: 15,
+                            position: "relative",
+                            top: 4,
+                          }}
+                        />
+                      )}
+                    </Typography>
+                  }
+                  data={newData}
+                  columns={columns}
+                  options={options}
+                />
+              </Grid>
+            </TentCard>
+          </FixedHeightGrid>
+        </Stack>
+      )}
 
       {AddUserModal}
     </DashboardLayout>
   );
 };
 
-export default Users;
+export default WithAuth(Users);
